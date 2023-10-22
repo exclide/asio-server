@@ -7,52 +7,24 @@
 
 #include "Asio.h"
 
+class ChatRoom;
+
 class ChatSession : public std::enable_shared_from_this<ChatSession> {
 public:
-    ChatSession(tcp::socket socket) : socket(std::move(socket)) {
-    }
+    ChatSession(tcp::socket socket, const std::shared_ptr<ChatRoom>& room);
 
-    void Start() {
-        DoRead();
-    }
+    void Start();
 
-    void DoRead() {
-        auto self{shared_from_this()};
+    void DoRead();
 
-        buf.consume(buf.size());
+    void DoWrite(std::size_t bytes);
 
-        boost::asio::async_read_until(
-                socket,
-                buf,
-                "\n",
-                [this, self](const error_code& err, std::size_t bytes) {
-                    if (!err) {
-                        DoWrite(bytes);
-                    }
-                }
-        );
-    }
-
-    void DoWrite(std::size_t bytes) {
-        auto self{shared_from_this()};
-
-        boost::asio::async_write(
-                socket,
-                buf,
-                [this, self] (const error_code& err, std::size_t bytes) {
-                    if (!err) {
-                        DoRead();
-                    }
-                });
-    }
-
-    void Send(const std::string& msg) {
-
-    }
+    void Send(const std::string& msg);
 
 private:
     tcp::socket socket;
     boost::asio::streambuf buf;
+    std::shared_ptr<ChatRoom> room;
 };
 
 #endif //ASIO_SERVER_CHATSESSION_H

@@ -7,27 +7,17 @@
 
 #include "Asio.h"
 #include "ChatSession.h"
+#include "ChatRoom.h"
 
 class ChatServer {
 public:
-    ChatServer(io_context& ioc, tcp::endpoint& endpoint) : acceptor(ioc, endpoint) {
-        StartAccept();
-    }
+    ChatServer(io_context& ioc, tcp::endpoint& endpoint);
 
-
-    void StartAccept() {
-        acceptor.async_accept(
-                [this] (error_code err, tcp::socket socket) {
-                    if (!err) {
-                        std::make_shared<ChatSession>(std::move(socket))->Start();
-                    }
-
-                    StartAccept();
-                });
-    }
+    void StartAccept();
 
 private:
     tcp::acceptor acceptor;
+    std::shared_ptr<ChatRoom> room;
 };
 
 #endif //ASIO_SERVER_CHATSERVER_H

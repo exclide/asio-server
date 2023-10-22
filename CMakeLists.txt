@@ -9,4 +9,4 @@ add_definitions(-O3)
 
 link_libraries(ws2_32 wsock32)
 
-add_executable(asio_server main.cpp)
+add_executable(asio_server main.cpp ChatServer.cpp ChatSession.cpp ChatRoom.cpp)
