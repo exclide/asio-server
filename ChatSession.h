@@ -19,11 +19,11 @@ public:
     void DoRead() {
         auto self{shared_from_this()};
 
-        buff.consume(buff.size());
+        buf.consume(buf.size());
 
         boost::asio::async_read_until(
                 socket,
-                buff,
+                buf,
                 "\n",
                 [this, self](const error_code& err, std::size_t bytes) {
                     if (!err) {
@@ -38,7 +38,7 @@ public:
 
         boost::asio::async_write(
                 socket,
-                buff,
+                buf,
                 [this, self] (const error_code& err, std::size_t bytes) {
                     if (!err) {
                         DoRead();
@@ -52,7 +52,7 @@ public:
 
 private:
     tcp::socket socket;
-    boost::asio::streambuf buff;
+    boost::asio::streambuf buf;
 };
 
 #endif //ASIO_SERVER_CHATSESSION_H
