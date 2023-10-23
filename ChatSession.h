@@ -19,9 +19,7 @@ public:
 
     void DoRead();
 
-    void DoWrite();
-
-    void StartSend(const std::shared_ptr<std::string>& msg);
+    void DoWrite(const std::shared_ptr<std::string>& msg);
 
     void Send(const std::shared_ptr<std::string>& msg);
 

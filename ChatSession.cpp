@@ -10,12 +10,12 @@ ChatSession::ChatSession(tcp::socket socket, const std::shared_ptr <ChatRoom> &r
 }
 
 ChatSession::~ChatSession() {
-    room->Leave(this);
+    room->Leave(weak_from_this());
 }
 
 
 void ChatSession::Start() {
-    room->Join(this);
+    room->Join(weak_from_this());
 
     boost::asio::dispatch(
             socket.get_executor(),
@@ -41,6 +41,15 @@ void ChatSession::DoRead() {
 }
 
 void ChatSession::Send(const std::shared_ptr<std::string>& msg) {
+    boost::asio::post(
+            socket.get_executor(),
+            [self = shared_from_this(), msg]() {
+                self->DoWrite(msg);
+            }
+    );
+}
+
+void ChatSession::DoWrite(const std::shared_ptr<std::string>& msg) {
     boost::asio::async_write(
             socket,
             boost::asio::buffer(*msg),

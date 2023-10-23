@@ -5,29 +5,25 @@
 #include "ChatRoom.h"
 #include "ChatSession.h"
 
-void ChatRoom::Join(ChatSession* session) {
+void ChatRoom::Join(const std::weak_ptr<ChatSession>& session) {
     std::lock_guard lock(m);
-    sessions.insert(session);
+    sessions.push_back(session);
 }
 
-void ChatRoom::Leave(ChatSession* session) {
+void ChatRoom::Leave(const std::weak_ptr<ChatSession>& session) {
     std::lock_guard lock(m);
-    sessions.erase(session);
+    std::erase_if(sessions, [&session](auto& s)  {
+        return s.lock() == session.lock();
+    });
 }
 
 void ChatRoom::Send(const std::string& msg) {
     auto ss = std::make_shared<std::string>(msg);
 
-    std::vector<std::weak_ptr<ChatSession>> v;
-    {
-        std::lock_guard lock(m);
-        for (auto s : sessions) {
-            v.emplace_back(s->weak_from_this());
-        }
-    }
+    std::lock_guard lock(m);
 
-    for (auto& wp : v) {
+    for (auto& wp : sessions) {
         if (auto ptr = wp.lock())
-            ptr->StartSend(ss);
+            ptr->Send(ss);
     }
 }
