@@ -5,6 +5,7 @@
 #ifndef ASIO_SERVER_CHATSESSION_H
 #define ASIO_SERVER_CHATSESSION_H
 
+#include <queue>
 #include "Asio.h"
 
 class ChatRoom;
@@ -12,19 +13,23 @@ class ChatRoom;
 class ChatSession : public std::enable_shared_from_this<ChatSession> {
 public:
     ChatSession(tcp::socket socket, const std::shared_ptr<ChatRoom>& room);
+    ~ChatSession();
 
     void Start();
 
     void DoRead();
 
-    void DoWrite(std::size_t bytes);
+    void DoWrite();
 
-    void Send(const std::string& msg);
+    void StartSend(const std::shared_ptr<std::string>& msg);
+
+    void Send(const std::shared_ptr<std::string>& msg);
 
 private:
     tcp::socket socket;
-    boost::asio::streambuf buf;
     std::shared_ptr<ChatRoom> room;
+    std::string data;
+    std::queue<std::shared_ptr<std::string>> sendq;
 };
 
 #endif //ASIO_SERVER_CHATSESSION_H

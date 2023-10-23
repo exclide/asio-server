@@ -20,6 +20,8 @@ int main(int argc, char* argv[]) {
         threads[i].detach();
     }
 
+    std::cout << "before ioc run\n";
+
     ioc.run();
 
     return EXIT_SUCCESS;

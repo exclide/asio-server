@@ -12,15 +12,15 @@ class ChatSession;
 
 class ChatRoom {
 public:
-    void Join(const std::shared_ptr<ChatSession>& session);
+    void Join(ChatSession* session);
 
-    void Leave(const std::shared_ptr<ChatSession>& session);
+    void Leave(ChatSession* session);
 
-    void Send(const std::string& message);
+    void Send(const std::string& msg);
 
 private:
     std::mutex m;
-    std::unordered_set<std::shared_ptr<ChatSession>> sessions;
+    std::unordered_set<ChatSession*> sessions;
 };
 
 #endif //ASIO_SERVER_CHATROOM_H
