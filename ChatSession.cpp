@@ -10,6 +10,7 @@ ChatSession::ChatSession(tcp::socket socket, const std::shared_ptr <ChatRoom> &r
 }
 
 ChatSession::~ChatSession() {
+    std::cout << "Closed connection: " << socket.remote_endpoint() << std::endl;
     room->Leave(weak_from_this());
 }
 
