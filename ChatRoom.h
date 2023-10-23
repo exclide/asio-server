@@ -13,9 +13,7 @@ class ChatSession;
 class ChatRoom {
 public:
     void Join(const std::weak_ptr<ChatSession>& session);
-
     void Leave(const std::weak_ptr<ChatSession>& session);
-
     void Send(const std::string& msg);
 
 private:

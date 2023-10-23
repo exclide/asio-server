@@ -25,8 +25,6 @@ void ChatSession::Start() {
 }
 
 void ChatSession::DoRead() {
-    data.clear();
-
     boost::asio::async_read_until(
             socket,
             boost::asio::dynamic_buffer(data),
@@ -34,6 +32,7 @@ void ChatSession::DoRead() {
             [self = shared_from_this()](const error_code& err, std::size_t bytes) {
                 if (!err) {
                     self->room->Send(self->data);
+                    self->data.clear();
                     self->DoRead();
                 }
             }
