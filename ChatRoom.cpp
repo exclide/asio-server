@@ -28,6 +28,6 @@ void ChatRoom::Send(const std::string& msg) {
 
     for (auto& wp : v) {
         if (auto ptr = wp.lock())
-            ptr->Send(ss);
+            ptr->StartSend(ss);
     }
 }

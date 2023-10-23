@@ -10,8 +10,6 @@ ChatServer::ChatServer(io_context &ioc, tcp::endpoint &endpoint) : acceptor(ioc,
 }
 
 void ChatServer::StartAccept() {
-    std::cout << "async accept call\n";
-
     acceptor.async_accept(
             boost::asio::make_strand(acceptor.get_executor()), //отдельный стрэнд для каждого соединения
             [this] (error_code err, tcp::socket socket) {
@@ -21,6 +19,4 @@ void ChatServer::StartAccept() {
 
                 StartAccept();
             });
-
-    std::cout << "async accept call exit\n";
 }
