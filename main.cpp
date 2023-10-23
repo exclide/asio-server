@@ -12,10 +12,10 @@ int main(int argc, char* argv[]) {
     tcp::endpoint endpoint(tcp::v4(), std::stoi(argv[1]));
 
     std::make_shared<ChatServer>(ioc, endpoint)->StartAccept();
-    //keep the temp shared alive, use shared from this
+    //keep the temp shared alive using shared from this
     std::cout << "Listening on port: " << endpoint.port() << std::endl;
 
-    std::vector<std::thread> threads;
+    std::vector<std::thread> threads; //thread pool executing ioc queue
     for (int i = 0; i < numThreads - 1; i++) {
         threads.emplace_back([&ioc]() { ioc.run(); });
         threads[i].detach();

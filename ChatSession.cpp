@@ -17,7 +17,7 @@ ChatSession::~ChatSession() {
 void ChatSession::Start() {
     room->Join(weak_from_this());
 
-    boost::asio::dispatch(
+    boost::asio::dispatch( //the first call won't be on strand, so dispatch to strand
             socket.get_executor(),
             [self = shared_from_this()]() {
                 self->DoRead();
@@ -44,7 +44,7 @@ void ChatSession::Send(const std::shared_ptr<std::string>& msg) {
             socket.get_executor(),
             [self = shared_from_this(), msg]() {
                 self->sendq.push(msg);
-                //нужна очередь, чтобы избежать вызовов async_write до завершения предыдущих записей
+                //need a queue, to avoid interleaving async_write calls (can only have one write at a time)
                 if (self->sendq.size() == 1) {
                     self->DoWrite();
                 }

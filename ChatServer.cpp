@@ -10,7 +10,7 @@ ChatServer::ChatServer(io_context &ioc, tcp::endpoint &endpoint) : acceptor(ioc,
 
 void ChatServer::StartAccept() {
     acceptor.async_accept(
-            boost::asio::make_strand(acceptor.get_executor()), //отдельный стрэнд для каждого соединения
+            boost::asio::make_strand(acceptor.get_executor()), //separate strand for every connection
             [self = shared_from_this()] (error_code err, tcp::socket socket) {
                 if (!err) {
                     std::make_shared<ChatSession>(std::move(socket), self->room)->Start();
