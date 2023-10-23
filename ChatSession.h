@@ -17,13 +17,14 @@ public:
 
     void Start();
     void DoRead();
-    void DoWrite(const std::shared_ptr<std::string>& msg);
+    void DoWrite();
     void Send(const std::shared_ptr<std::string>& msg);
 
 private:
     tcp::socket socket;
     std::shared_ptr<ChatRoom> room;
     std::string data;
+    std::queue<std::shared_ptr<std::string>> sendq;
 };
 
 #endif //ASIO_SERVER_CHATSESSION_H

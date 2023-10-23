@@ -43,17 +43,25 @@ void ChatSession::Send(const std::shared_ptr<std::string>& msg) {
     boost::asio::post(
             socket.get_executor(),
             [self = shared_from_this(), msg]() {
-                self->DoWrite(msg);
+                self->sendq.push(msg);
+                //нужна очередь, чтобы избежать вызовов async_write до завершения предыдущих записей
+                if (self->sendq.size() == 1) {
+                    self->DoWrite();
+                }
             }
     );
 }
 
-void ChatSession::DoWrite(const std::shared_ptr<std::string>& msg) {
+void ChatSession::DoWrite() {
     boost::asio::async_write(
             socket,
-            boost::asio::buffer(*msg),
-            [self = shared_from_this(), msg] (error_code err, std::size_t) {
+            boost::asio::buffer(*sendq.front()),
+            [self = shared_from_this()] (error_code err, std::size_t) {
+                self->sendq.pop();
 
+                if (!self->sendq.empty()) {
+                    self->DoWrite();
+                }
             }
     );
 }
