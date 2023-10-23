@@ -6,17 +6,16 @@
 
 ChatServer::ChatServer(io_context &ioc, tcp::endpoint &endpoint) : acceptor(ioc, endpoint) {
     room = std::make_shared<ChatRoom>();
-    StartAccept();
 }
 
 void ChatServer::StartAccept() {
     acceptor.async_accept(
             boost::asio::make_strand(acceptor.get_executor()), //отдельный стрэнд для каждого соединения
-            [this] (error_code err, tcp::socket socket) {
+            [self = shared_from_this()] (error_code err, tcp::socket socket) {
                 if (!err) {
-                    std::make_shared<ChatSession>(std::move(socket), room)->Start();
+                    std::make_shared<ChatSession>(std::move(socket), self->room)->Start();
                 }
 
-                StartAccept();
+                self->StartAccept();
             });
 }

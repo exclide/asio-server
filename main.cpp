@@ -11,7 +11,8 @@ int main(int argc, char* argv[]) {
     io_context ioc{numThreads}; //hint number of threads running ioc
     tcp::endpoint endpoint(tcp::v4(), std::stoi(argv[1]));
 
-    ChatServer server{ioc, endpoint};
+    std::make_shared<ChatServer>(ioc, endpoint)->StartAccept();
+    //keep the temp shared alive, use shared from this
     std::cout << "Listening on port: " << endpoint.port() << std::endl;
 
     std::vector<std::thread> threads;
@@ -20,9 +21,6 @@ int main(int argc, char* argv[]) {
         threads[i].detach();
     }
 
-    std::cout << "before ioc run\n";
-
     ioc.run();
-
     return EXIT_SUCCESS;
 }

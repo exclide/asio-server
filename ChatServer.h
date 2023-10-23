@@ -9,7 +9,7 @@
 #include "ChatSession.h"
 #include "ChatRoom.h"
 
-class ChatServer {
+class ChatServer : public std::enable_shared_from_this<ChatServer> {
 public:
     ChatServer(io_context& ioc, tcp::endpoint& endpoint);
 
