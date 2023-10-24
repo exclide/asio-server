@@ -41,6 +41,8 @@ void ChatSession::DoRead() {
 }
 
 void ChatSession::Send(const std::shared_ptr<std::string>& msg) {
+    std::cout << "Broadcasting message: " << *msg;
+
     boost::asio::post(
             socket.get_executor(),
             [self = shared_from_this(), msg]() {
@@ -58,7 +60,9 @@ void ChatSession::DoWrite() {
             socket,
             boost::asio::buffer(*sendq.front()),
             [self = shared_from_this()] (error_code err, std::size_t) {
-                self->sendq.pop();
+                if (!err) {
+                    self->sendq.pop();
+                }
 
                 if (!self->sendq.empty()) {
                     self->DoWrite();
