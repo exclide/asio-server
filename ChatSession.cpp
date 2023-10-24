@@ -7,6 +7,9 @@
 
 ChatSession::ChatSession(tcp::socket socket, const std::shared_ptr <ChatRoom> &room)
     : socket(std::move(socket)), room(room) {
+    clientAdr = this->socket.remote_endpoint().address().to_string()
+                + ":"
+                + std::to_string(this->socket.remote_endpoint().port());
 }
 
 ChatSession::~ChatSession() {
@@ -17,10 +20,14 @@ ChatSession::~ChatSession() {
 
 void ChatSession::Start() {
     room->Join(weak_from_this());
+    std::cout << "Accepted connection from: " << socket.remote_endpoint() << std::endl;
 
     boost::asio::dispatch( //the first call won't be on strand, so dispatch to strand
             socket.get_executor(),
             [self = shared_from_this()]() {
+                auto msg = self->clientAdr + " joined\n";
+
+                self->room->Send(msg);
                 self->DoRead();
             });
 }
@@ -32,6 +39,7 @@ void ChatSession::DoRead() {
             "\n",
             [self = shared_from_this()](const error_code& err, std::size_t bytes) {
                 if (!err) {
+                    self->data = self->clientAdr + ": " + self->data;
                     self->room->Send(self->data);
                     self->data.clear();
                     self->DoRead();
