@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <boost/asio.hpp>
+#include <boost/asio/ssl.hpp>
 
 using boost::asio::io_context;
 using boost::asio::ip::tcp;

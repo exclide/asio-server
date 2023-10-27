@@ -5,30 +5,43 @@
 #include "ChatSession.h"
 #include "ChatRoom.h"
 
-ChatSession::ChatSession(tcp::socket socket, const std::shared_ptr <ChatRoom> &room)
+
+ChatSession::ChatSession(boost::asio::ssl::stream<tcp::socket>&& socket, const std::shared_ptr <ChatRoom> &room)
     : socket(std::move(socket)), room(room) {
-    clientAdr = this->socket.remote_endpoint().address().to_string()
+    clientAdr = this->socket.lowest_layer().remote_endpoint().address().to_string()
                 + ":"
-                + std::to_string(this->socket.remote_endpoint().port());
+                + std::to_string(this->socket.lowest_layer().remote_endpoint().port());
 }
 
 ChatSession::~ChatSession() {
-    std::cout << "Closed connection: " << socket.remote_endpoint() << std::endl;
+    std::cout << "Closed connection: " << socket.lowest_layer().remote_endpoint() << std::endl;
     room->Leave(weak_from_this());
 }
 
 
 void ChatSession::Start() {
-    room->Join(weak_from_this());
-    std::cout << "Accepted connection from: " << socket.remote_endpoint() << std::endl;
-
     boost::asio::dispatch( //the first call won't be on strand, so dispatch to strand
             socket.get_executor(),
             [self = shared_from_this()]() {
-                auto msg = self->clientAdr + " joined\n";
+                self->DoHandshake();
+            });
+}
 
-                self->room->Send(msg);
-                self->DoRead();
+void ChatSession::DoHandshake() {
+    socket.async_handshake(
+            boost::asio::ssl::stream_base::server,
+            [self = shared_from_this()](error_code err){
+                if (!err) {
+                    self->room->Join(self->weak_from_this());
+                    std::cout << "Accepted SSL handshake from: " <<
+                    self->socket.lowest_layer().remote_endpoint() << std::endl;
+                    auto msg = self->clientAdr + " joined\n";
+
+                    self->room->Send(msg);
+                    self->DoRead();
+                } else {
+                    std::cout << "SSL handshake failed\n";
+                }
             });
 }
 

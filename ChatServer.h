@@ -18,6 +18,7 @@ public:
 private:
     tcp::acceptor acceptor;
     std::shared_ptr<ChatRoom> room;
+    boost::asio::ssl::context sslContext;
 };
 
 #endif //ASIO_SERVER_CHATSERVER_H

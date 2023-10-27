@@ -10,18 +10,21 @@
 
 class ChatRoom;
 
+
 class ChatSession : public std::enable_shared_from_this<ChatSession> {
 public:
-    ChatSession(tcp::socket socket, const std::shared_ptr<ChatRoom>& room);
+    ChatSession(boost::asio::ssl::stream<tcp::socket>&& socket, const std::shared_ptr<ChatRoom>& room);
     ~ChatSession();
 
     void Start();
     void DoRead();
     void DoWrite();
+    void DoHandshake();
     void Send(const std::shared_ptr<std::string>& msg);
 
 private:
-    tcp::socket socket;
+    //tcp::socket socket;
+    boost::asio::ssl::stream<tcp::socket> socket;
     std::shared_ptr<ChatRoom> room;
     std::string data;
     std::queue<std::shared_ptr<std::string>> sendq;
