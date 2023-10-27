@@ -53,6 +53,7 @@ void ChatSession::DoRead() {
             [self = shared_from_this()](const error_code& err, std::size_t bytes) {
                 if (!err) {
                     self->data = self->clientAdr + ": " + self->data;
+                    std::cout << "Broadcasting message: " << self->data;
                     self->room->Send(self->data);
                     self->data.clear();
                     self->DoRead();
@@ -62,8 +63,6 @@ void ChatSession::DoRead() {
 }
 
 void ChatSession::Send(const std::shared_ptr<std::string>& msg) {
-    std::cout << "Broadcasting message: " << *msg;
-
     boost::asio::post(
             socket.get_executor(),
             [self = shared_from_this(), msg]() {
