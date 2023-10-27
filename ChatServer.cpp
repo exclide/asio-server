@@ -13,8 +13,7 @@ ChatServer::ChatServer(io_context &ioc, tcp::endpoint &endpoint)
             boost::asio::ssl::context::default_workarounds
             | boost::asio::ssl::context::no_sslv2
             | boost::asio::ssl::context::single_dh_use);
-    sslContext.set_password_callback(
-            [](size_t, boost::asio::ssl::context::password_purpose) { return "test"; });
+
     sslContext.use_certificate_chain_file("../ssl/user.crt");
     sslContext.use_private_key_file("../ssl/user.key", boost::asio::ssl::context::pem);
     sslContext.use_tmp_dh_file("../ssl/dh2048.pem");
