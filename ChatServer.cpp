@@ -6,7 +6,7 @@
 
 ChatServer::ChatServer(io_context &ioc, tcp::endpoint &endpoint)
         : acceptor(ioc, endpoint),
-          sslContext(boost::asio::ssl::context::sslv23) {
+          sslContext(boost::asio::ssl::context::tlsv13_server) {
     room = std::make_shared<ChatRoom>();
 
     sslContext.set_options(
