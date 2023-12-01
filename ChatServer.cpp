@@ -24,8 +24,7 @@ void ChatServer::StartAccept() {
             boost::asio::make_strand(acceptor.get_executor()), //separate strand for every connection
             [self = shared_from_this()] (error_code err, tcp::socket socket) {
                 if (!err) {
-                    std::make_shared<ChatSession>(
-                            boost::asio::ssl::stream<tcp::socket>(std::move(socket), self->sslContext), self->room)->Start();
+                    std::make_shared<ChatSession>(std::move(socket), self->sslContext, self->room)->Start();
                 }
 
                 self->StartAccept();

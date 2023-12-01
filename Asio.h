@@ -8,9 +8,18 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
+#include <boost/beast.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/ssl.hpp>
+#include <boost/beast/websocket.hpp>
+#include <boost/beast/websocket/ssl.hpp>
 
 using boost::asio::io_context;
 using boost::asio::ip::tcp;
 using boost::system::error_code;
+
+namespace beast = boost::beast;
+namespace http = beast::http;
+namespace websocket = beast::websocket;
 
 #endif //ASIO_SERVER_ASIO_H

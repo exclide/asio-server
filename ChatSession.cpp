@@ -6,65 +6,70 @@
 #include "ChatRoom.h"
 
 
-ChatSession::ChatSession(boost::asio::ssl::stream<tcp::socket>&& socket, const std::shared_ptr <ChatRoom> &room)
-    : socket(std::move(socket)), room(room) {
-    clientAdr = this->socket.lowest_layer().remote_endpoint().address().to_string()
-                + ":"
-                + std::to_string(this->socket.lowest_layer().remote_endpoint().port());
+ChatSession::ChatSession(tcp::socket&& socket, boost::asio::ssl::context& ctx, const std::shared_ptr <ChatRoom> &room)
+    : ws(std::move(socket), ctx), room(room) {
 }
 
 ChatSession::~ChatSession() {
-    std::cout << "Closed connection: " << socket.lowest_layer().remote_endpoint() << std::endl;
+    std::cout << "Closed connection from client\n";
     room->Leave(weak_from_this());
 }
 
 
 void ChatSession::Start() {
     boost::asio::dispatch( //the first call won't be on strand, so dispatch to strand
-            socket.get_executor(),
+            ws.get_executor(),
             [self = shared_from_this()]() {
-                self->DoHandshake();
+                self->DoSslHandshake();
             });
 }
 
-void ChatSession::DoHandshake() {
-    socket.async_handshake(
+void ChatSession::DoSslHandshake() {
+    ws.next_layer().async_handshake(
             boost::asio::ssl::stream_base::server,
             [self = shared_from_this()](error_code err){
                 if (!err) {
-                    self->room->Join(self->weak_from_this());
-                    std::cout << "Accepted SSL handshake from: " <<
-                    self->socket.lowest_layer().remote_endpoint() << std::endl;
-                    auto msg = self->clientAdr + " joined\n";
-
-                    self->room->Send(msg);
-                    self->DoRead();
+                    std::cout << "Accepted SSL handshake from client\n";
+                    self->DoWebsocketHandshake();
                 } else {
                     std::cout << "SSL handshake failed\n";
                 }
             });
 }
 
-void ChatSession::DoRead() {
-    boost::asio::async_read_until(
-            socket,
-            boost::asio::dynamic_buffer(data),
-            "\n",
-            [self = shared_from_this()](const error_code& err, std::size_t bytes) {
+void ChatSession::DoWebsocketHandshake() {
+    ws.set_option(websocket::stream_base::timeout::suggested(beast::role_type::server));
+
+    ws.async_accept(
+            [self = shared_from_this()](error_code err) {
                 if (!err) {
-                    self->data = self->clientAdr + ": " + self->data;
-                    std::cout << "Broadcasting message: " << self->data;
-                    self->room->Send(self->data);
-                    self->data.clear();
+                    std::cout << "Accepted websocket handshake from client\n";
+                    self->room->Join(self->weak_from_this());
                     self->DoRead();
+                } else {
+                    std::cout << "Websocket handshake failed\n";
                 }
             }
     );
 }
 
+void ChatSession::DoRead() {
+    ws.async_read(
+            buffer,
+            [self = shared_from_this()](error_code err, size_t bytesRead) {
+                if (!err) {
+                    auto str = beast::buffers_to_string(self->buffer.data());
+                    std::cout << "Broadcasting message: " << str;
+                    self->room->Send(str);
+                    self->buffer.consume(self->buffer.size());
+                    self->DoRead();
+                }
+            });
+}
+
 void ChatSession::Send(const std::shared_ptr<std::string>& msg) {
     boost::asio::post(
-            socket.get_executor(),
+            ws.get_executor(),
             [self = shared_from_this(), msg]() {
                 self->sendq.push(msg);
                 //need a queue, to avoid interleaving async_write calls (can only have one write at a time)
@@ -76,8 +81,7 @@ void ChatSession::Send(const std::shared_ptr<std::string>& msg) {
 }
 
 void ChatSession::DoWrite() {
-    boost::asio::async_write(
-            socket,
+    ws.async_write(
             boost::asio::buffer(*sendq.front()),
             [self = shared_from_this()] (error_code err, std::size_t) {
                 if (!err) {
