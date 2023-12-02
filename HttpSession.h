@@ -7,6 +7,8 @@
 
 #include "Asio.h"
 #include "AuthService.h"
+#include "User.h"
+#include "jwt-cpp/jwt.h"
 
 // The concrete type of the response message (which depends on the
 // request), is type-erased in message_generator.
@@ -71,6 +73,7 @@ std::pair<http::message_generator, bool> HandleRequest(http::request<Body, http:
         return {bad_request("Illegal request-target"), false};
 
     std::cout << req.target() << std::endl;
+    std::cout << req.method() << std::endl;
 
     std::string path = req.target();
 
@@ -81,23 +84,40 @@ std::pair<http::message_generator, bool> HandleRequest(http::request<Body, http:
 
         } else if (req.method() == http::verb::post) {
             auto body = req.body();
-            json j(body);
+            std::cout << body << std::endl;
+            json j = json::parse(body);
             User user = j.template get<User>();
 
             std::cout << "Registering user with login: " << user.login << std::endl;
-            authService->Register(user);
+            if (auto dbUser = authService->Register(user); !dbUser.login.empty()) {
+                json rj = dbUser;
+                std::cout << "Pass hash: " << dbUser.password << std::endl;
+                return {ok_response(nlohmann::to_string(rj)), false};
+            } else {
+                return {unauthorized(), false};
+            }
+
         } else {
             return {bad_request("Illegal request"), false};
         }
     } else if (path == "/api/login") {
         if (req.method() == http::verb::post) {
             auto body = req.body();
-            json j(body);
+            std::cout << body << std::endl;
+            json j = json::parse(body);
             User user = j.template get<User>();
 
-            if (authService->Login(user)) {
-                //login success, should now accept websocket upgrade request
-                return {ok_response(json(user)), true};
+            if (auto dbUser = authService->Login(user); !dbUser.login.empty()) {
+                json rj = dbUser;
+                auto token = jwt::create()
+                        .set_issuer("auth0")
+                        .set_type("JWS")
+                        .set_payload_claim("sample", jwt::claim(std::string("test")))
+                        .sign(jwt::algorithm::hs256{"secret"});
+
+                rj["Token"] = "gavno";
+                std::cout << "Pass hash: " << dbUser.password << std::endl;
+                return {ok_response(nlohmann::to_string(rj)), true};
             } else {
                 return {unauthorized(), false};
             }
@@ -113,7 +133,6 @@ class HttpSession : public std::enable_shared_from_this<HttpSession> {
 public:
     HttpSession(tcp::socket&& socket, boost::asio::ssl::context& ctx, std::shared_ptr<ChatRoom>& room) :
     stream(std::move(socket), ctx),
-    sslContext(ctx),
     room(room) {
         std::cout << "Http connection open\n";
     }
@@ -161,25 +180,33 @@ public:
     }
 
     void HandleHttpRequest() {
-        auto res = HandleRequest(std::move(req));
+        std::cout << "Handle request called\n";
 
-        DoWrite(res.first);
+        if (websocket::is_upgrade(req)) {
+            if (!req.base().count("Authorization")) return;
 
-        if (res.second) { //login success
-            std::make_shared<ChatSession>(stream.next_layer().release_socket(), sslContext, room)->Start();
+            std::string auth = req.base().at("Authorization");
+            //verify jwt token
+            std::cout << auth << std::endl;
+            std::cout << "Is upgrade request\n";
+            std::make_shared<ChatSession>(
+                    std::move(stream), room)->Start(req);
+            return;
         }
 
-        DoClose();
 
-    }
+        auto res = HandleRequest(std::move(req));
 
-    void DoWrite(http::message_generator& msg) {
         beast::async_write(
                 stream,
-                std::move(msg),
-                [self = shared_from_this()](error_code err, size_t) {
+                std::move(res.first),
+                [self = shared_from_this(), login = res.second](error_code err, size_t) {
+                    if (login) {
+                        std::cout << "LoginSuccess\n";
+                    }
                 }
         );
+
     }
 
     void DoClose() {
@@ -197,7 +224,6 @@ private:
     http::request<http::string_body> req;
 
     std::shared_ptr<ChatRoom> room;
-    boost::asio::ssl::context& sslContext;
 };
 
 #endif //ASIO_SERVER_HTTPSESSION_H

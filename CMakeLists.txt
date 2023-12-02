@@ -8,6 +8,8 @@ find_package(Boost REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 
+find_path(JWT_CPP_INCLUDE_DIRS "jwt-cpp/base.h")
+
 set(sources main.cpp ChatServer.cpp ChatSession.cpp ChatRoom.cpp
         UserRepository.h
         sha256.h
@@ -18,5 +20,5 @@ set(sources main.cpp ChatServer.cpp ChatSession.cpp ChatRoom.cpp
 set(libs OpenSSL::SSL nlohmann_json::nlohmann_json)
 
 add_executable(asio_server ${sources})
-include_directories(asio_server ${Boost_INCLUDE_DIRS})
+include_directories(asio_server ${Boost_INCLUDE_DIRS} ${JWT_CPP_INCLUDE_DIRS})
 target_link_libraries(asio_server ${libs})

@@ -21,10 +21,13 @@ public:
         return db[login];
     }
 
-    void Create(const User& user) {
+    User Create(const User& user) {
         if (db.find(user.login) == db.end()) {
             db[user.login] = User{user.login, user.password};
+            return user;
         }
+
+        return User{};
     }
 
     std::vector<User> FindAllUsers() {

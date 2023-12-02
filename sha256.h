@@ -7,13 +7,20 @@
 
 #include <string>
 #include <openssl/sha.h>
+#include <sstream>
+#include <iomanip>
+
 
 std::string sha256(const std::string& str) {
     unsigned char hash [SHA256_DIGEST_LENGTH];
-    auto hashedPassword =
-            std::string((char*)SHA256((const unsigned char*)(str.data()), str.size(), hash));
-
-    return hashedPassword;
+    const auto* data = (const unsigned char*)str.c_str();
+    SHA256(data, str.size(), hash);
+    std::stringstream ss;
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
+    {
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+    }
+    return ss.str();
 }
 
 #endif //ASIO_SERVER_SHA256_H

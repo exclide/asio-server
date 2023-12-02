@@ -27,16 +27,16 @@ public:
         return authService;
     }
 
-    bool Login(User& user) {
+    User Login(User& user) {
         User dbUser = userRepository->FindByLogin(user.login);
         user.password = sha256(user.password);
 
-        return user == dbUser;
+        return user == dbUser ? user : User{};
     }
 
-    void Register(User& user) {
+    User Register(User& user) {
         user.password = sha256(user.password);
-        userRepository->Create(user);
+        return userRepository->Create(user);
     }
 
     std::vector<User> FindAllUsers() {
