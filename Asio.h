@@ -14,9 +14,13 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/ssl.hpp>
 
+#include <nlohmann/json.hpp>
+
 using boost::asio::io_context;
 using boost::asio::ip::tcp;
 using boost::system::error_code;
+
+using json = nlohmann::json;
 
 namespace beast = boost::beast;
 namespace http = beast::http;
