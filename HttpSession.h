@@ -10,6 +10,8 @@
 #include "User.h"
 #include "jwt-cpp/jwt.h"
 
+std::string SECRET_JWT_KEY = "123";
+
 // The concrete type of the response message (which depends on the
 // request), is type-erased in message_generator.
 template<class Body, class Allocator>
@@ -110,12 +112,12 @@ std::pair<http::message_generator, bool> HandleRequest(http::request<Body, http:
             if (auto dbUser = authService->Login(user); !dbUser.login.empty()) {
                 json rj = dbUser;
                 auto token = jwt::create()
-                        .set_issuer("auth0")
+                        .set_issuer("wschat")
                         .set_type("JWS")
-                        .set_payload_claim("sample", jwt::claim(std::string("test")))
-                        .sign(jwt::algorithm::hs256{"secret"});
+                        .set_payload_claim("login", jwt::claim(dbUser.login))
+                        .sign(jwt::algorithm::hs256{SECRET_JWT_KEY});
 
-                rj["Token"] = "gavno";
+                rj["Token"] = token;
                 std::cout << "Pass hash: " << dbUser.password << std::endl;
                 return {ok_response(nlohmann::to_string(rj)), true};
             } else {
@@ -184,10 +186,21 @@ public:
 
         if (websocket::is_upgrade(req)) {
             if (!req.base().count("Authorization")) return;
+            std::string token = req.base().at("Authorization");
+            std::cout << token << std::endl;
 
-            std::string auth = req.base().at("Authorization");
-            //verify jwt token
-            std::cout << auth << std::endl;
+            static auto verifier = jwt::verify()
+                    .allow_algorithm(jwt::algorithm::hs256{SECRET_JWT_KEY})
+                    .with_issuer("wschat");
+
+            try {
+                auto decoded = jwt::decode(token);
+                verifier.verify(decoded);
+            } catch (...) {
+                std::cout << "Wrong token received\n";
+                return;
+            }
+
             std::cout << "Is upgrade request\n";
             std::make_shared<ChatSession>(
                     std::move(stream), room)->Start(req);
