@@ -2,18 +2,18 @@
 // Created by asd on 22-Oct-23.
 //
 
-#ifndef ASIO_SERVER_CHATSESSION_H
-#define ASIO_SERVER_CHATSESSION_H
+#ifndef ASIO_SERVER_WEBSOCKETSESSION_H
+#define ASIO_SERVER_WEBSOCKETSESSION_H
 
 #include <queue>
 #include "Asio.h"
 #include "ChatRoom.h"
 
 
-class ChatSession : public std::enable_shared_from_this<ChatSession> {
+class WebsocketSession : public std::enable_shared_from_this<WebsocketSession> {
 public:
-    ChatSession(beast::ssl_stream<beast::tcp_stream>&& stream, const std::shared_ptr<ChatRoom>& room);
-    ~ChatSession();
+    WebsocketSession(beast::ssl_stream<beast::tcp_stream>&& stream, const std::shared_ptr<ChatRoom>& room);
+    ~WebsocketSession();
 
     void DoRead();
     void DoWrite();
@@ -32,7 +32,7 @@ private:
 };
 
 template<class Body, class Allocator>
-void ChatSession::Start(http::request<Body, http::basic_fields<Allocator>> req) {
+void WebsocketSession::Start(http::request<Body, http::basic_fields<Allocator>> req) {
     ws.next_layer().async_handshake(
             boost::asio::ssl::stream_base::server,
             [self = shared_from_this(), req](error_code err){
@@ -46,7 +46,7 @@ void ChatSession::Start(http::request<Body, http::basic_fields<Allocator>> req) 
 }
 
 template<class Body, class Allocator>
-void ChatSession::DoWebsocketHandshake(http::request<Body, http::basic_fields<Allocator>> req) {
+void WebsocketSession::DoWebsocketHandshake(http::request<Body, http::basic_fields<Allocator>> req) {
     // Set suggested timeout settings for the websocket
     ws.set_option(websocket::stream_base::timeout::suggested(beast::role_type::server));
 
@@ -73,4 +73,4 @@ void ChatSession::DoWebsocketHandshake(http::request<Body, http::basic_fields<Al
             });
 }
 
-#endif //ASIO_SERVER_CHATSESSION_H
+#endif //ASIO_SERVER_WEBSOCKETSESSION_H

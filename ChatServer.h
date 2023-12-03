@@ -6,7 +6,7 @@
 #define ASIO_SERVER_CHATSERVER_H
 
 #include "Asio.h"
-#include "ChatSession.h"
+#include "WebsocketSession.h"
 #include "ChatRoom.h"
 
 class ChatServer : public std::enable_shared_from_this<ChatServer> {

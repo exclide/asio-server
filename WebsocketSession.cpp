@@ -2,21 +2,21 @@
 // Created by asd on 23-Oct-23.
 //
 
-#include "ChatSession.h"
+#include "WebsocketSession.h"
 #include "ChatRoom.h"
 
 
-ChatSession::ChatSession(beast::ssl_stream<beast::tcp_stream>&& stream, const std::shared_ptr <ChatRoom> &room)
+WebsocketSession::WebsocketSession(beast::ssl_stream<beast::tcp_stream>&& stream, const std::shared_ptr <ChatRoom> &room)
     : ws(std::move(stream)), room(room) {
 }
 
-ChatSession::~ChatSession() {
+WebsocketSession::~WebsocketSession() {
     std::cout << "Closed connection from client\n";
     room->Leave(weak_from_this());
 }
 
 
-void ChatSession::DoRead() {
+void WebsocketSession::DoRead() {
     ws.async_read(
             buffer,
             [self = shared_from_this()](error_code err, size_t bytesRead) {
@@ -30,7 +30,7 @@ void ChatSession::DoRead() {
             });
 }
 
-void ChatSession::Send(const std::shared_ptr<std::string>& msg) {
+void WebsocketSession::Send(const std::shared_ptr<std::string>& msg) {
     boost::asio::post(
             ws.get_executor(),
             [self = shared_from_this(), msg]() {
@@ -43,7 +43,7 @@ void ChatSession::Send(const std::shared_ptr<std::string>& msg) {
     );
 }
 
-void ChatSession::DoWrite() {
+void WebsocketSession::DoWrite() {
     ws.async_write(
             boost::asio::buffer(*sendq.front()),
             [self = shared_from_this()] (error_code err, std::size_t) {

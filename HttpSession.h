@@ -202,7 +202,7 @@ public:
             }
 
             std::cout << "Is upgrade request\n";
-            std::make_shared<ChatSession>(
+            std::make_shared<WebsocketSession>(
                     std::move(stream), room)->Start(req);
             return;
         }

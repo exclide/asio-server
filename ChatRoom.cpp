@@ -3,14 +3,14 @@
 //
 
 #include "ChatRoom.h"
-#include "ChatSession.h"
+#include "WebsocketSession.h"
 
-void ChatRoom::Join(const std::weak_ptr<ChatSession>& session) {
+void ChatRoom::Join(const std::weak_ptr<WebsocketSession>& session) {
     std::lock_guard lock(m);
     sessions.push_back(session);
 }
 
-void ChatRoom::Leave(const std::weak_ptr<ChatSession>& session) {
+void ChatRoom::Leave(const std::weak_ptr<WebsocketSession>& session) {
     std::lock_guard lock(m);
     std::erase_if(sessions, [&session](auto& s)  {
         return s.lock() == session.lock();

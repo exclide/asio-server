@@ -10,7 +10,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 
 find_path(JWT_CPP_INCLUDE_DIRS "jwt-cpp/base.h")
 
-set(sources main.cpp ChatServer.cpp ChatSession.cpp ChatRoom.cpp
+set(sources main.cpp ChatServer.cpp WebsocketSession.cpp ChatRoom.cpp
         UserRepository.h
         sha256.h
         User.h

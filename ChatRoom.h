@@ -8,17 +8,17 @@
 #include <vector>
 #include <memory>
 
-class ChatSession;
+class WebsocketSession;
 
 class ChatRoom {
 public:
-    void Join(const std::weak_ptr<ChatSession>& session);
-    void Leave(const std::weak_ptr<ChatSession>& session);
+    void Join(const std::weak_ptr<WebsocketSession>& session);
+    void Leave(const std::weak_ptr<WebsocketSession>& session);
     void Send(const std::string& msg);
 
 private:
     std::mutex m;
-    std::vector<std::weak_ptr<ChatSession>> sessions;
+    std::vector<std::weak_ptr<WebsocketSession>> sessions;
 };
 
 #endif //ASIO_SERVER_CHATROOM_H
