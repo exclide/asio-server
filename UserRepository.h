@@ -13,6 +13,14 @@
 
 class UserRepository {
 public:
+    UserRepository() {
+        for (int i = 0; i < 4; i++) {
+            std::string login = "asd" + std::to_string(i+1);
+            User user{login, sha256(login)};
+            db[login] = user;
+        }
+    }
+
     User FindByLogin(const std::string& login) {
         if (db.find(login) == db.end()) {
             return User{};

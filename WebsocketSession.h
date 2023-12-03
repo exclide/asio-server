@@ -12,7 +12,9 @@
 
 class WebsocketSession : public std::enable_shared_from_this<WebsocketSession> {
 public:
-    WebsocketSession(beast::ssl_stream<beast::tcp_stream>&& stream, const std::shared_ptr<ChatRoom>& room);
+    WebsocketSession(beast::ssl_stream<beast::tcp_stream>&& stream,
+                     const std::shared_ptr<ChatRoom>& room,
+                     std::string login);
     ~WebsocketSession();
 
     void DoRead();
@@ -29,6 +31,8 @@ private:
 
     std::shared_ptr<ChatRoom> room;
     std::queue<std::shared_ptr<std::string>> sendq;
+
+    std::string login;
 };
 
 template<class Body, class Allocator>
@@ -65,7 +69,7 @@ void WebsocketSession::DoWebsocketHandshake(http::request<Body, http::basic_fiel
             [self = shared_from_this()](error_code err) {
                 if (!err) {
                     std::cout << "Accepted websocket handshake from client\n";
-                    self->room->Join(self->weak_from_this());
+                    self->room->Join(self->login, self->weak_from_this());
                     self->DoRead();
                 } else {
                     std::cout << "Websocket handshake failed: " << err.message() << std::endl;

@@ -7,18 +7,21 @@
 
 #include <vector>
 #include <memory>
+#include <unordered_map>
+#include "MessageService.h"
 
 class WebsocketSession;
 
 class ChatRoom {
 public:
-    void Join(const std::weak_ptr<WebsocketSession>& session);
-    void Leave(const std::weak_ptr<WebsocketSession>& session);
-    void Send(const std::string& msg);
+    void Join(const std::string& login, const std::weak_ptr<WebsocketSession>& session);
+    void Leave(const std::string& login);
+    void Send(const std::string& from, const std::string& jsn);
 
 private:
     std::mutex m;
-    std::vector<std::weak_ptr<WebsocketSession>> sessions;
+    std::unordered_map<std::string, std::weak_ptr<WebsocketSession>> wsMap;
+    MessageService* messageService = MessageService::GetInstance();
 };
 
 #endif //ASIO_SERVER_CHATROOM_H

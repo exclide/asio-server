@@ -3,16 +3,20 @@
 //
 
 #include "WebsocketSession.h"
+
+#include <utility>
 #include "ChatRoom.h"
 
 
-WebsocketSession::WebsocketSession(beast::ssl_stream<beast::tcp_stream>&& stream, const std::shared_ptr <ChatRoom> &room)
-    : ws(std::move(stream)), room(room) {
+WebsocketSession::WebsocketSession(beast::ssl_stream<beast::tcp_stream>&& stream,
+                                   const std::shared_ptr <ChatRoom> &room,
+                                   std::string login)
+    : ws(std::move(stream)), room(room), login(std::move(login)) {
 }
 
 WebsocketSession::~WebsocketSession() {
-    std::cout << "Closed connection from client\n";
-    room->Leave(weak_from_this());
+    std::cout << "Closed WS connection from client\n";
+    room->Leave(login);
 }
 
 
@@ -22,8 +26,8 @@ void WebsocketSession::DoRead() {
             [self = shared_from_this()](error_code err, size_t bytesRead) {
                 if (!err) {
                     auto str = beast::buffers_to_string(self->buffer.data());
-                    std::cout << "Broadcasting message: " << str;
-                    self->room->Send(str);
+                    std::cout << "Received json: " << str;
+                    self->room->Send(self->login, str);
                     self->buffer.consume(self->buffer.size());
                     self->DoRead();
                 }

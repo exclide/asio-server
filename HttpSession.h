@@ -193,8 +193,13 @@ public:
                     .allow_algorithm(jwt::algorithm::hs256{SECRET_JWT_KEY})
                     .with_issuer("wschat");
 
+            std::string login;
+
             try {
                 auto decoded = jwt::decode(token);
+                login = decoded.get_payload_claim("login").as_string();
+                std::cout << login << std::endl;
+
                 verifier.verify(decoded);
             } catch (...) {
                 std::cout << "Wrong token received\n";
@@ -203,7 +208,7 @@ public:
 
             std::cout << "Is upgrade request\n";
             std::make_shared<WebsocketSession>(
-                    std::move(stream), room)->Start(req);
+                    std::move(stream), room, login)->Start(req);
             return;
         }
 
