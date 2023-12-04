@@ -5,7 +5,7 @@
 #include "ChatRoom.h"
 #include "WebsocketSession.h"
 #include "Asio.h"
-#include "Message.h"
+#include "ClientMessage.h"
 #include "DbMessage.h"
 
 void ChatRoom::Join(const std::string& login, const std::weak_ptr<WebsocketSession>& session) {
@@ -20,20 +20,19 @@ void ChatRoom::Leave(const std::string& login) {
 
 void ChatRoom::Send(const std::string& from, const std::string& jsn) {
     json j, msg;
-    Message msgIn;
+    ClientMessage msgIn;
+    DbMessage dbMessage;
 
     try {
         j = json::parse(jsn);
-        msgIn = j.template get<Message>();
-        Message msgOut{from, msgIn.text};
-        msg = msgOut;
+        msgIn = j.template get<ClientMessage>();
+        dbMessage = {from, msgIn.to, msgIn.text, std::time(0)};
+        msg = dbMessage;
     } catch (...) {
         std::cout << "Wrong json format\n";
     }
 
     auto ssJson = std::make_shared<std::string>(nlohmann::to_string(msg));
-    auto date = std::time(nullptr);
-    DbMessage dbMessage{from, msgIn.to, msgIn.text, date};
     messageService->AddMessage(dbMessage);
 
     std::lock_guard lock(m);

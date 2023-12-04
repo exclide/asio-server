@@ -16,7 +16,7 @@ set(sources main.cpp ChatServer.cpp WebsocketSession.cpp ChatRoom.cpp
         User.h
         AuthService.h
         HttpSession.h
-        Message.h
+        ClientMessage.h
         DbMessage.h
         MessageRepository.h
         MessageService.h

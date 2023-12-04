@@ -35,6 +35,8 @@ void WebsocketSession::DoRead() {
 }
 
 void WebsocketSession::Send(const std::shared_ptr<std::string>& msg) {
+    std::cout << "Sending json:" << *msg << std::endl;
+
     boost::asio::post(
             ws.get_executor(),
             [self = shared_from_this(), msg]() {
