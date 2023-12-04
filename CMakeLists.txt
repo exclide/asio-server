@@ -12,7 +12,7 @@ find_path(JWT_CPP_INCLUDE_DIRS "jwt-cpp/base.h")
 
 set(sources main.cpp ChatServer.cpp WebsocketSession.cpp ChatRoom.cpp
         UserRepository.h
-        sha256.h
+        Sha256.h
         User.h
         AuthService.h
         HttpSession.h
@@ -20,6 +20,9 @@ set(sources main.cpp ChatServer.cpp WebsocketSession.cpp ChatRoom.cpp
         DbMessage.h
         MessageRepository.h
         MessageService.h
+        MessageService.cpp
+        AuthService.cpp
+        Sha256.cpp
 )
 set(libs OpenSSL::SSL nlohmann_json::nlohmann_json)
 

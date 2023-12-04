@@ -29,13 +29,13 @@ public:
 
     User Login(User& user) {
         User dbUser = userRepository->FindByLogin(user.login);
-        user.password = sha256(user.password);
+        user.password = Sha256(user.password);
 
         return user == dbUser ? user : User{};
     }
 
     User Register(User& user) {
-        user.password = sha256(user.password);
+        user.password = Sha256(user.password);
         return userRepository->Create(user);
     }
 
@@ -44,6 +44,5 @@ public:
     }
 };
 
-AuthService* AuthService::authService = nullptr;
 
 #endif //ASIO_SERVER_AUTHSERVICE_H

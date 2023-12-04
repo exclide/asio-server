@@ -11,10 +11,12 @@
 class MessageRepository {
 public:
     MessageRepository() {
-
+        db.emplace_back("asd1", "asd2", "asd1 to asd2", time(0));
+        db.emplace_back("asd1", "asd3", "asd1 to asd3", time(0));
+        db.emplace_back("asd4", "asd1", "asd4 to asd1", time(0));
     }
 
-    DbMessage Create(const DbMessage& msg) {
+    void Create(const DbMessage& msg) {
         db.push_back(msg);
     }
 

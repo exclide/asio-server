@@ -19,10 +19,17 @@ void ChatRoom::Leave(const std::string& login) {
 }
 
 void ChatRoom::Send(const std::string& from, const std::string& jsn) {
-    json j = json::parse(jsn);
-    Message msgIn = j.template get<Message>();
-    Message msgOut{from, msgIn.text};
-    json msg = msgOut;
+    json j, msg;
+    Message msgIn;
+
+    try {
+        j = json::parse(jsn);
+        msgIn = j.template get<Message>();
+        Message msgOut{from, msgIn.text};
+        msg = msgOut;
+    } catch (...) {
+        std::cout << "Wrong json format\n";
+    }
 
     auto ssJson = std::make_shared<std::string>(nlohmann::to_string(msg));
     auto date = std::time(nullptr);
@@ -33,5 +40,7 @@ void ChatRoom::Send(const std::string& from, const std::string& jsn) {
     if (wsMap.count(msgIn.to)) {
         auto msgTarget = wsMap[msgIn.to].lock(); //target websocket session
         msgTarget->Send(ssJson);
+    } else {
+        std::cout << "Receiver client offline, but message saved to db\n";
     }
 }

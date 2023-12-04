@@ -34,8 +34,20 @@ public:
     std::vector<DbMessage> FindAll() {
         return messageRepository->FindAll();
     }
+
+    std::vector<DbMessage> FindAllForLogin(const std::string& login) {
+        auto db = messageRepository->FindAll();
+        std::vector<DbMessage> res;
+
+        for (auto& msg : db) {
+            if (msg.sender == login || msg.receiver == login) {
+                res.push_back(msg);
+            }
+        }
+
+        return res;
+    }
 };
 
-MessageService* MessageService::messageService = nullptr;
 
 #endif //ASIO_SERVER_MESSAGESERVICE_H

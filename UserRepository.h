@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
-#include "sha256.h"
+#include "Sha256.h"
 #include "User.h"
 
 class UserRepository {
@@ -16,7 +16,7 @@ public:
     UserRepository() {
         for (int i = 0; i < 4; i++) {
             std::string login = "asd" + std::to_string(i+1);
-            User user{login, sha256(login)};
+            User user{login, Sha256(login)};
             db[login] = user;
         }
     }

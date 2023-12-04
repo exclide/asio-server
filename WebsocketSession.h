@@ -8,6 +8,8 @@
 #include <queue>
 #include "Asio.h"
 #include "ChatRoom.h"
+#include "AuthService.h"
+#include "MessageService.h"
 
 
 class WebsocketSession : public std::enable_shared_from_this<WebsocketSession> {
@@ -70,6 +72,27 @@ void WebsocketSession::DoWebsocketHandshake(http::request<Body, http::basic_fiel
                 if (!err) {
                     std::cout << "Accepted websocket handshake from client\n";
                     self->room->Join(self->login, self->weak_from_this());
+                    //send the needed data
+                    auto authService = AuthService::GetInstance();
+                    auto msgService = MessageService::GetInstance();
+
+                    auto users = authService->FindAllUsers();
+                    for (auto& u : users) u.password = "";
+                    auto messages = msgService->FindAllForLogin(self->login);
+                    json j;
+
+                    j["users"] = users;
+                    j["messages"] = messages;
+                    //j.push_back(users);
+                    //j.push_back(messages);
+
+                    std::string jsonStr = nlohmann::to_string(j);
+                    auto ss = std::make_shared<std::string>(jsonStr);
+                    std::cout << jsonStr << std::endl;
+
+                    self->Send(ss);
+
+
                     self->DoRead();
                 } else {
                     std::cout << "Websocket handshake failed: " << err.message() << std::endl;
