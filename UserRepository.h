@@ -10,46 +10,77 @@
 #include <vector>
 #include "Sha256.h"
 #include "User.h"
+#include <pqxx/pqxx>
 
 class UserRepository {
 public:
-    UserRepository() {
-        for (int i = 0; i < 4; i++) {
-            std::string login = "asd" + std::to_string(i+1);
-            User user{login, Sha256(login)};
-            db[login] = user;
-        }
-    }
 
     User FindByLogin(const std::string& login) {
-        if (db.find(login) == db.end()) {
-            return User{};
-        }
+        try {
+            pqxx::connection conn(
+                    "host=localhost port=5432 dbname=postgres user=postgres password=postgres"
+            );
 
-        return db[login];
-    }
+            std::string sql_query = "SELECT * FROM Users WHERE login = '" + login + "'";
 
-    User Create(const User& user) {
-        if (db.find(user.login) == db.end()) {
-            db[user.login] = User{user.login, user.password};
-            return user;
+            pqxx::work tx{conn};
+            pqxx::result res = tx.exec(sql_query);
+
+            if (!res.empty()) {
+                auto resLogin = res[0]["login"].as<std::string>();
+                auto resPassword = res[0]["password"].as<std::string>();
+
+                return User{resLogin, resPassword};
+            }
+        } catch (const std::exception &e) {
+            std::cout << e.what() << std::endl;
         }
 
         return User{};
     }
 
+    User Create(const User& user) {
+        try {
+            pqxx::connection conn(
+                    "host=localhost port=5432 dbname=postgres user=postgres password=postgres"
+            );
+
+            std::string sqlQuery = "INSERT INTO users (login, password) VALUES ('" + user.login + "', '" + user.password + "')";
+
+            pqxx::work tx{conn};
+            tx.exec(sqlQuery);
+            tx.commit();
+        } catch (const std::exception &e) {
+            std::cout << e.what() << std::endl;
+        }
+
+        return user;
+    }
+
     std::vector<User> FindAllUsers() {
         std::vector<User> users;
 
-        for (auto [_, user] : db) {
-            users.push_back(user);
+        try {
+            pqxx::connection conn(
+                    "host=localhost port=5432 dbname=postgres user=postgres password=postgres"
+            );
+
+            std::string sqlQuery = "SELECT login, password FROM users ORDER BY login";
+
+            pqxx::work tx{conn};
+
+            for (auto [login, password] : tx.query<std::string, std::string>(
+                    sqlQuery
+            )) {
+                users.push_back({login, password});
+            }
+
+        } catch (const std::exception &e) {
+            std::cout << e.what() << std::endl;
         }
 
         return users;
     }
-
-private:
-    std::unordered_map<std::string, User> db;
 };
 
 #endif //ASIO_SERVER_USERREPOSITORY_H
