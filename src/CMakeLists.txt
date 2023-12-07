@@ -16,6 +16,7 @@ set(sources main.cpp ChatServer.cpp WebsocketSession.cpp ChatRoom.cpp
         MessageService.cpp
         AuthService.cpp
         Sha256.cpp
+        ChatException.h
 )
 set(libs OpenSSL::SSL nlohmann_json::nlohmann_json libpqxx::pqxx)
 

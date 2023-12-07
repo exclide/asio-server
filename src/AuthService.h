@@ -7,6 +7,7 @@
 
 #include <memory>
 #include "UserRepository.h"
+#include "ChatException.h"
 
 class AuthService {
 private:
@@ -28,6 +29,10 @@ public:
     }
 
     User Login(User& user) {
+        if (user.login.empty() || user.password.empty()) {
+            throw ChatException("Empty login or password strings");
+        }
+
         User dbUser = userRepository->FindByLogin(user.login);
         user.password = Sha256(user.password);
 
@@ -35,6 +40,10 @@ public:
     }
 
     User Register(User& user) {
+        if (user.login.empty() || user.password.empty()) {
+            throw ChatException("Empty login or password strings");
+        }
+
         user.password = Sha256(user.password);
         return userRepository->Create(user);
     }

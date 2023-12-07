@@ -91,11 +91,15 @@ std::pair<http::message_generator, bool> HandleRequest(http::request<Body, http:
             User user = j.template get<User>();
 
             std::cout << "Registering user with login: " << user.login << std::endl;
-            if (auto dbUser = authService->Register(user); !dbUser.login.empty()) {
-                json rj = dbUser;
-                std::cout << "Pass hash: " << dbUser.password << std::endl;
-                return {ok_response(nlohmann::to_string(rj)), false};
-            } else {
+            try {
+                if (auto dbUser = authService->Register(user); !dbUser.login.empty()) {
+                    json rj = dbUser;
+                    std::cout << "Pass hash: " << dbUser.password << std::endl;
+                    return {ok_response(nlohmann::to_string(rj)), false};
+                } else {
+                    return {unauthorized(), false};
+                }
+            } catch (...) {
                 return {unauthorized(), false};
             }
 
@@ -109,18 +113,22 @@ std::pair<http::message_generator, bool> HandleRequest(http::request<Body, http:
             json j = json::parse(body);
             User user = j.template get<User>();
 
-            if (auto dbUser = authService->Login(user); !dbUser.login.empty()) {
-                json rj = dbUser;
-                auto token = jwt::create()
-                        .set_issuer("wschat")
-                        .set_type("JWS")
-                        .set_payload_claim("login", jwt::claim(dbUser.login))
-                        .sign(jwt::algorithm::hs256{SECRET_JWT_KEY});
+            try {
+                if (auto dbUser = authService->Login(user); !dbUser.login.empty()) {
+                    json rj = dbUser;
+                    auto token = jwt::create()
+                            .set_issuer("wschat")
+                            .set_type("JWS")
+                            .set_payload_claim("login", jwt::claim(dbUser.login))
+                            .sign(jwt::algorithm::hs256{SECRET_JWT_KEY});
 
-                rj["Token"] = token;
-                std::cout << "Pass hash: " << dbUser.password << std::endl;
-                return {ok_response(nlohmann::to_string(rj)), true};
-            } else {
+                    rj["Token"] = token;
+                    std::cout << "Pass hash: " << dbUser.password << std::endl;
+                    return {ok_response(nlohmann::to_string(rj)), true};
+                } else {
+                    return {unauthorized(), false};
+                }
+            } catch (...) {
                 return {unauthorized(), false};
             }
         } else {
