@@ -15,9 +15,9 @@ ChatServer::ChatServer(io_context &ioc, tcp::endpoint &endpoint)
             | boost::asio::ssl::context::no_sslv2
             | boost::asio::ssl::context::single_dh_use);
 
-    sslContext.use_certificate_chain_file("../ssl/user.crt");
-    sslContext.use_private_key_file("../ssl/user.key", boost::asio::ssl::context::pem);
-    sslContext.use_tmp_dh_file("../ssl/dh2048.pem");
+    sslContext.use_certificate_chain_file("ssl/user.crt");
+    sslContext.use_private_key_file("ssl/user.key", boost::asio::ssl::context::pem);
+    sslContext.use_tmp_dh_file("ssl/dh2048.pem");
 }
 
 void ChatServer::StartAccept() {
