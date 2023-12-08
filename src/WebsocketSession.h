@@ -7,7 +7,7 @@
 
 #include <queue>
 #include "Asio.h"
-#include "ChatRoom.h"
+#include "SharedState.h"
 #include "AuthService.h"
 #include "MessageService.h"
 
@@ -15,7 +15,7 @@
 class WebsocketSession : public std::enable_shared_from_this<WebsocketSession> {
 public:
     WebsocketSession(beast::ssl_stream<beast::tcp_stream>&& stream,
-                     const std::shared_ptr<ChatRoom>& room,
+                     const std::shared_ptr<SharedState>& room,
                      std::string login);
     ~WebsocketSession();
 
@@ -31,7 +31,7 @@ private:
     websocket::stream<beast::ssl_stream<beast::tcp_stream>> ws;
     beast::flat_buffer buffer;
 
-    std::shared_ptr<ChatRoom> room;
+    std::shared_ptr<SharedState> room;
     std::queue<std::shared_ptr<std::string>> sendq;
 
     std::string login;
@@ -46,11 +46,11 @@ void WebsocketSession::Start(http::request<Body, http::basic_fields<Allocator>> 
                     std::cout << "Accepted SSL handshake from client\n";
                     self->DoWebsocketHandshake(req);
                 } else if (err == boost::asio::error::eof) {
-                    std::cout << "Connection closed by peer\n";
+                    std::cerr << "Connection closed by peer\n";
                 } else if (err == boost::asio::error::operation_aborted) {
-                    std::cout << "Operation aborted either thread exit or app request\n";
+                    std::cerr << "Operation aborted either thread exit or app request\n";
                 } else {
-                    std::cout << "SSL handshake failed\n";
+                    std::cerr << "SSL handshake failed: " << err.message() << std::endl;
                 }
             });
 }
@@ -97,11 +97,11 @@ void WebsocketSession::DoWebsocketHandshake(http::request<Body, http::basic_fiel
 
                     self->DoRead();
                 } else if (err == boost::asio::error::eof) {
-                    std::cout << "Connection closed by peer\n";
+                    std::cerr << "Connection closed by peer\n";
                 } else if (err == boost::asio::error::operation_aborted) {
-                    std::cout << "Operation aborted either thread exit or app request\n";
+                    std::cerr << "Operation aborted either thread exit or app request\n";
                 } else {
-                    std::cout << "Websocket handshake failed: " << err.message() << std::endl;
+                    std::cerr << "Websocket handshake failed: " << err.message() << std::endl;
                 }
             });
 }

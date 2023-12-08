@@ -3,6 +3,7 @@
 //
 
 #include "DbConnPool.h"
+#include <iostream>
 
 DbConnPool::DbConnPool(const std::string &connectionString, int connections) {
     InitPool(connectionString, connections);
@@ -35,3 +36,14 @@ void DbConnPool::InitPool(const std::string &connectionString, int connections) 
                 "INSERT INTO messages (receiver, sender, text, date) VALUES ($1, $2, $3, $4)");
     }
 }
+
+void DbConnPool::CloseConnections() {
+    while (!connectionPool.empty()) {
+        connectionPool.top()->close();
+    }
+}
+
+DbConnPool::~DbConnPool() {
+    std::cout << "DbConnPool destructor called\n";
+}
+

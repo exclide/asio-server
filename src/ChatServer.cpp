@@ -8,11 +8,10 @@
 ChatServer::ChatServer(
         io_context& ioc,
         tcp::endpoint& endpoint,
-        const std::shared_ptr<AuthService>& authService,
-        const std::shared_ptr<MessageService>& msgService)
+        const std::shared_ptr<SharedState>& sharedState)
         : acceptor(ioc, endpoint),
           sslContext(boost::asio::ssl::context::tlsv13_server),
-          room(std::make_shared<ChatRoom>(msgService, authService)) {
+          room(sharedState) {
 
     sslContext.set_options(
             boost::asio::ssl::context::default_workarounds
@@ -30,6 +29,10 @@ void ChatServer::StartAccept() {
             [self = shared_from_this()] (error_code err, tcp::socket socket) {
                 if (!err) {
                     std::make_shared<HttpSession>(std::move(socket), self->sslContext,  self->room)->Start();
+                } else if (err == boost::asio::error::operation_aborted) {
+                    std::cerr << "Operation aborted either thread exit or app request\n";
+                } else {
+                    std::cerr << err.message() << std::endl;
                 }
 
                 self->StartAccept();

@@ -17,7 +17,7 @@ set(sources
         ChatServer.cpp
         HttpSession.cpp
         WebsocketSession.cpp
-        ChatRoom.cpp
+        SharedState.cpp
         MessageService.cpp
         AuthService.cpp
         Sha256.cpp

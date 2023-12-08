@@ -9,7 +9,7 @@
 HttpSession::HttpSession(
         tcp::socket&& socket,
         boost::asio::ssl::context& ctx,
-        const std::shared_ptr<ChatRoom>& room) :
+        const std::shared_ptr<SharedState>& room) :
         stream(std::move(socket), ctx),
         room(room),
         httpHandler(room->GetAuthService()) {
@@ -35,8 +35,12 @@ void HttpSession::DoSslHandshake() {
                 if (!err) {
                     std::cout << "Http: Accepted SSL handshake from client\n";
                     self->DoRead();
+                } else if (err == boost::asio::error::eof) {
+                    std::cerr << "Connection closed by peer\n";
+                } else if (err == boost::asio::error::operation_aborted) {
+                    std::cerr << "Operation aborted either thread exit or app request\n";
                 } else {
-                    std::cout << "Http: SSL handshake failed\n";
+                    std::cerr << "SSL handshake failed: " << err.message() << std::endl;
                 }
             });
 }
@@ -49,12 +53,16 @@ void HttpSession::DoRead() {
             buffer,
             req,
             [self = shared_from_this()](error_code err, size_t) {
-                if (err) {
+                if (!err) {
+                    self->HandleHttpRequest();
+                } else if (err == boost::asio::error::eof) {
+                    std::cerr << "Connection closed by peer\n";
                     self->DoClose();
-                    return;
+                } else if (err == boost::asio::error::operation_aborted) {
+                    std::cerr << "Operation aborted either thread exit or app request\n";
+                } else {
+                    std::cerr << err.message() << std::endl;
                 }
-
-                self->HandleHttpRequest();
             });
 }
 
@@ -79,7 +87,7 @@ void HttpSession::HandleHttpRequest() {
 
             verifier.verify(decoded);
         } catch (...) {
-            std::cout << "Wrong token received\n";
+            std::cerr << "Wrong token received\n";
             return;
         }
 
@@ -96,8 +104,15 @@ void HttpSession::HandleHttpRequest() {
             stream,
             std::move(res.first),
             [self = shared_from_this(), login = res.second](error_code err, size_t) {
-                if (login) {
+                if (!err && login) {
                     std::cout << "LoginSuccess\n";
+                }  else if (err == boost::asio::error::eof) {
+                    std::cerr << "Connection closed by peer\n";
+                    self->DoClose();
+                } else if (err == boost::asio::error::operation_aborted) {
+                    std::cerr << "Operation aborted either thread exit or app request\n";
+                } else if (err) {
+                    std::cerr << err.message() << std::endl;
                 }
             }
     );
@@ -106,8 +121,7 @@ void HttpSession::HandleHttpRequest() {
 
 void HttpSession::DoClose() {
     stream.async_shutdown([self=shared_from_this()](error_code err) {
-        if (err) {
-            std::cout << err << std::endl;
-        }
+        if (err)
+            std::cerr << err.message() << std::endl;
     });
 }

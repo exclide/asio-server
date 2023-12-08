@@ -2,29 +2,29 @@
 // Created by asd on 23-Oct-23.
 //
 
-#include "ChatRoom.h"
+#include "SharedState.h"
 #include "WebsocketSession.h"
 #include "Asio.h"
 #include "ClientMessage.h"
 #include "DbMessage.h"
 
-ChatRoom::ChatRoom(const std::shared_ptr<MessageService>& messageService,
-                   const std::shared_ptr<AuthService>& authService)
+SharedState::SharedState(const std::shared_ptr<MessageService>& messageService,
+                         const std::shared_ptr<AuthService>& authService)
         : messageService(messageService),
           authService(authService) {}
 
 
-void ChatRoom::Join(const std::string& login, const std::weak_ptr<WebsocketSession>& session) {
+void SharedState::Join(const std::string& login, const std::weak_ptr<WebsocketSession>& session) {
     std::lock_guard lock(m);
     wsMap[login] = session;
 }
 
-void ChatRoom::Leave(const std::string& login) {
+void SharedState::Leave(const std::string& login) {
     std::lock_guard lock(m);
     wsMap.erase(login);
 }
 
-void ChatRoom::Send(const std::string& from, const std::string& jsn) {
+void SharedState::Send(const std::string& from, const std::string& jsn) {
     json j, msg;
     ClientMessage msgIn;
     DbMessage dbMessage;
@@ -35,7 +35,7 @@ void ChatRoom::Send(const std::string& from, const std::string& jsn) {
         dbMessage = {from, msgIn.to, msgIn.text, std::time(0)};
         msg = dbMessage;
     } catch (...) {
-        std::cout << "Wrong json format\n";
+        std::cerr << "Wrong json format\n";
     }
 
     auto ssJson = std::make_shared<std::string>(nlohmann::to_string(msg));
@@ -49,10 +49,10 @@ void ChatRoom::Send(const std::string& from, const std::string& jsn) {
     }
 }
 
-std::shared_ptr<MessageService> ChatRoom::GetMessageService() {
+std::shared_ptr<MessageService> SharedState::GetMessageService() {
     return messageService;
 }
 
-std::shared_ptr<AuthService> ChatRoom::GetAuthService() {
+std::shared_ptr<AuthService> SharedState::GetAuthService() {
     return authService;
 }

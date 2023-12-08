@@ -7,21 +7,20 @@
 
 #include "Asio.h"
 #include "WebsocketSession.h"
-#include "ChatRoom.h"
+#include "SharedState.h"
 
 class ChatServer : public std::enable_shared_from_this<ChatServer> {
 public:
     ChatServer(
             io_context& ioc,
             tcp::endpoint& endpoint,
-            const std::shared_ptr<AuthService>& authService,
-            const std::shared_ptr<MessageService>& msgService);
+            const std::shared_ptr<SharedState>& sharedState);
 
     void StartAccept();
 
 private:
     tcp::acceptor acceptor;
-    std::shared_ptr<ChatRoom> room;
+    std::shared_ptr<SharedState> room;
     boost::asio::ssl::context sslContext;
 };
 

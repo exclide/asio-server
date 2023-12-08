@@ -5,11 +5,11 @@
 #include "WebsocketSession.h"
 
 #include <utility>
-#include "ChatRoom.h"
+#include "SharedState.h"
 
 
 WebsocketSession::WebsocketSession(beast::ssl_stream<beast::tcp_stream>&& stream,
-                                   const std::shared_ptr <ChatRoom> &room,
+                                   const std::shared_ptr <SharedState> &room,
                                    std::string login)
     : ws(std::move(stream)), room(room), login(std::move(login)) {
 }
@@ -35,7 +35,7 @@ void WebsocketSession::DoRead() {
                 } else if (err == boost::asio::error::operation_aborted) {
                     std::cout << "Operation aborted either thread exit or app request\n";
                 } else {
-                    std::cout << err << std::endl;
+                    std::cout << err.message() << std::endl;
                 }
             });
 }
@@ -67,7 +67,7 @@ void WebsocketSession::DoWrite() {
                 } else if (err == boost::asio::error::operation_aborted) {
                     std::cout << "Operation aborted either thread exit or app request\n";
                 } else {
-                    std::cout << err << std::endl;
+                    std::cout << err.message() << std::endl;
                     return;
                 }
 

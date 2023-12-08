@@ -18,9 +18,11 @@ public:
 
     DbConnPool(const DbConnPool& other) = delete;
     void operator=(const DbConnPool& other) = delete;
+    ~DbConnPool();
 
     std::shared_ptr<pqxx::connection> GetConnection();
     void ReleaseConnection(const std::shared_ptr<pqxx::connection>& connection);
+    void CloseConnections();
 
 private:
     void InitPool(const std::string& connectionString, int connections);

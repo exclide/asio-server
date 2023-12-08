@@ -13,10 +13,10 @@
 
 class WebsocketSession;
 
-class ChatRoom {
+class SharedState {
 public:
-    explicit ChatRoom(const std::shared_ptr<MessageService>& messageService,
-                      const std::shared_ptr<AuthService>& authService);
+    explicit SharedState(const std::shared_ptr<MessageService>& messageService,
+                         const std::shared_ptr<AuthService>& authService);
     void Join(const std::string& login, const std::weak_ptr<WebsocketSession>& session);
     void Leave(const std::string& login);
     void Send(const std::string& from, const std::string& jsn);
