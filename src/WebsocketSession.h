@@ -45,6 +45,10 @@ void WebsocketSession::Start(http::request<Body, http::basic_fields<Allocator>> 
                 if (!err) {
                     std::cout << "Accepted SSL handshake from client\n";
                     self->DoWebsocketHandshake(req);
+                } else if (err == boost::asio::error::eof) {
+                    std::cout << "Connection closed by peer\n";
+                } else if (err == boost::asio::error::operation_aborted) {
+                    std::cout << "Operation aborted either thread exit or app request\n";
                 } else {
                     std::cout << "SSL handshake failed\n";
                 }
@@ -92,6 +96,10 @@ void WebsocketSession::DoWebsocketHandshake(http::request<Body, http::basic_fiel
 
 
                     self->DoRead();
+                } else if (err == boost::asio::error::eof) {
+                    std::cout << "Connection closed by peer\n";
+                } else if (err == boost::asio::error::operation_aborted) {
+                    std::cout << "Operation aborted either thread exit or app request\n";
                 } else {
                     std::cout << "Websocket handshake failed: " << err.message() << std::endl;
                 }

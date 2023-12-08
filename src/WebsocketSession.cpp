@@ -30,6 +30,12 @@ void WebsocketSession::DoRead() {
                     self->room->Send(self->login, str);
                     self->buffer.consume(self->buffer.size());
                     self->DoRead();
+                } else if (err == boost::asio::error::eof) {
+                    std::cout << "Connection closed by peer\n";
+                } else if (err == boost::asio::error::operation_aborted) {
+                    std::cout << "Operation aborted either thread exit or app request\n";
+                } else {
+                    std::cout << err << std::endl;
                 }
             });
 }
@@ -55,6 +61,14 @@ void WebsocketSession::DoWrite() {
             [self = shared_from_this()] (error_code err, std::size_t) {
                 if (!err) {
                     self->sendq.pop();
+                } else if (err == boost::asio::error::eof) {
+                    std::cout << "Connection closed by peer\n";
+                    return;
+                } else if (err == boost::asio::error::operation_aborted) {
+                    std::cout << "Operation aborted either thread exit or app request\n";
+                } else {
+                    std::cout << err << std::endl;
+                    return;
                 }
 
                 if (!self->sendq.empty()) {
