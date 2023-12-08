@@ -73,8 +73,8 @@ void WebsocketSession::DoWebsocketHandshake(http::request<Body, http::basic_fiel
                     std::cout << "Accepted websocket handshake from client\n";
                     self->room->Join(self->login, self->weak_from_this());
                     //send the needed data
-                    auto authService = AuthService::GetInstance();
-                    auto msgService = MessageService::GetInstance();
+                    auto authService = self->room->GetAuthService();
+                    auto msgService = self->room->GetMessageService();
 
                     auto users = authService->FindAllUsers();
                     for (auto& u : users) u.password = "";
@@ -83,8 +83,6 @@ void WebsocketSession::DoWebsocketHandshake(http::request<Body, http::basic_fiel
 
                     j["users"] = users;
                     j["messages"] = messages;
-                    //j.push_back(users);
-                    //j.push_back(messages);
 
                     std::string jsonStr = nlohmann::to_string(j);
                     auto ss = std::make_shared<std::string>(jsonStr);

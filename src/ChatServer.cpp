@@ -5,10 +5,14 @@
 #include "ChatServer.h"
 #include "HttpSession.h"
 
-ChatServer::ChatServer(io_context &ioc, tcp::endpoint &endpoint)
+ChatServer::ChatServer(
+        io_context& ioc,
+        tcp::endpoint& endpoint,
+        const std::shared_ptr<AuthService>& authService,
+        const std::shared_ptr<MessageService>& msgService)
         : acceptor(ioc, endpoint),
-          sslContext(boost::asio::ssl::context::tlsv13_server) {
-    room = std::make_shared<ChatRoom>();
+          sslContext(boost::asio::ssl::context::tlsv13_server),
+          room(std::make_shared<ChatRoom>(msgService, authService)) {
 
     sslContext.set_options(
             boost::asio::ssl::context::default_workarounds

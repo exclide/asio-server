@@ -11,7 +11,11 @@
 
 class ChatServer : public std::enable_shared_from_this<ChatServer> {
 public:
-    ChatServer(io_context& ioc, tcp::endpoint& endpoint);
+    ChatServer(
+            io_context& ioc,
+            tcp::endpoint& endpoint,
+            const std::shared_ptr<AuthService>& authService,
+            const std::shared_ptr<MessageService>& msgService);
 
     void StartAccept();
 

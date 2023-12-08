@@ -12,16 +12,25 @@ find_package(libpqxx CONFIG REQUIRED)
 find_path(JWT_CPP_INCLUDE_DIRS "jwt-cpp/base.h")
 
 
-set(sources main.cpp ChatServer.cpp WebsocketSession.cpp ChatRoom.cpp
+set(sources
+        main.cpp
+        ChatServer.cpp
+        HttpSession.cpp
+        WebsocketSession.cpp
+        ChatRoom.cpp
         MessageService.cpp
         AuthService.cpp
         Sha256.cpp
         ChatException.h
-        DbContext.h
+        DbConnPool.h
         DbConfigParser.h
         ParseException.h
         DbConfig.h
-        DbContext.cpp
+        DbConnPool.cpp
+        HttpHandler.h
+        MessageRepository.cpp
+        UserRepository.cpp
+        HttpHandler.cpp
 )
 set(libs OpenSSL::SSL nlohmann_json::nlohmann_json libpqxx::pqxx)
 

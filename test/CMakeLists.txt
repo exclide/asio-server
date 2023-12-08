@@ -1,5 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.26)
 
+set(CMAKE_CXX_STANDARD 17)
+
 project(server_test)
 
 find_package(GTest CONFIG REQUIRED)

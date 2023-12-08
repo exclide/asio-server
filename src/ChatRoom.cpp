@@ -8,6 +8,12 @@
 #include "ClientMessage.h"
 #include "DbMessage.h"
 
+ChatRoom::ChatRoom(const std::shared_ptr<MessageService>& messageService,
+                   const std::shared_ptr<AuthService>& authService)
+        : messageService(messageService),
+          authService(authService) {}
+
+
 void ChatRoom::Join(const std::string& login, const std::weak_ptr<WebsocketSession>& session) {
     std::lock_guard lock(m);
     wsMap[login] = session;
@@ -41,4 +47,12 @@ void ChatRoom::Send(const std::string& from, const std::string& jsn) {
     } else {
         std::cout << "Receiver client offline, but message saved to db\n";
     }
+}
+
+std::shared_ptr<MessageService> ChatRoom::GetMessageService() {
+    return messageService;
+}
+
+std::shared_ptr<AuthService> ChatRoom::GetAuthService() {
+    return authService;
 }
