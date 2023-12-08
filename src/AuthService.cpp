@@ -3,8 +3,9 @@
 //
 
 #include "AuthService.h"
+#include "Sha256.h"
 
-AuthService::AuthService(const std::shared_ptr<UserRepository>& userRepository) : userRepository(userRepository) {}
+AuthService::AuthService(const std::shared_ptr<IUserRepository>& userRepository) : userRepository(userRepository) {}
 
 User AuthService::Login(User &user) {
     if (user.login.empty() || user.password.empty()) {

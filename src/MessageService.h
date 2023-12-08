@@ -6,14 +6,14 @@
 #define ASIO_SERVER_MESSAGESERVICE_H
 
 #include <memory>
-#include "MessageRepository.h"
+#include "IMessageRepository.h"
 
 class MessageService {
 private:
-    std::shared_ptr<MessageRepository> messageRepository;
+    std::shared_ptr<IMessageRepository> messageRepository;
 
 public:
-    explicit MessageService(const std::shared_ptr<MessageRepository>& messageRepository);
+    explicit MessageService(const std::shared_ptr<IMessageRepository>& messageRepository);
     MessageService(const MessageService& other) = delete;
     void operator=(const MessageService& other) = delete;
 

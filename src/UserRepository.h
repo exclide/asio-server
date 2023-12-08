@@ -11,17 +11,18 @@
 #include "Sha256.h"
 #include "User.h"
 #include "DbConnPool.h"
+#include "IUserRepository.h"
 #include <pqxx/pqxx>
 
-class UserRepository {
+class UserRepository : public IUserRepository {
 private:
     std::shared_ptr<DbConnPool> dbConnPool;
 public:
     explicit UserRepository(const std::shared_ptr<DbConnPool>& dbConnPool);
 
-    User FindByLogin(const std::string& login);
-    User Create(const User& user);
-    std::vector<User> FindAllUsers();
+    User FindByLogin(const std::string& login) override;
+    User Create(const User& user) override;
+    std::vector<User> FindAllUsers() override;
 };
 
 #endif //ASIO_SERVER_USERREPOSITORY_H

@@ -7,7 +7,15 @@ project(server_test)
 find_package(GTest CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-set(sources main.cpp ../src/Sha256.cpp)
+set(sources
+        main.cpp
+        ../src/Sha256.cpp
+        ../src/MessageService.cpp
+        ../src/AuthService.cpp
+        ../src/HttpHandler.cpp
+        StubUserRepository.h
+        StubUserRepository.cpp
+        StubMessageRepository.cpp)
 set(libs OpenSSL::SSL GTest::gtest GTest::gtest_main)
 
 

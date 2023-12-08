@@ -31,6 +31,9 @@ set(sources
         MessageRepository.cpp
         UserRepository.cpp
         HttpHandler.cpp
+        IMessageRepository.h
+        IUserRepository.h
+        ../test/StubMessageRepository.h
 )
 set(libs OpenSSL::SSL nlohmann_json::nlohmann_json libpqxx::pqxx)
 

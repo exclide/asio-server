@@ -6,15 +6,15 @@
 #define ASIO_SERVER_AUTHSERVICE_H
 
 #include <memory>
-#include "UserRepository.h"
+#include "IUserRepository.h"
 #include "ChatException.h"
 
 class AuthService {
 private:
-    std::shared_ptr<UserRepository> userRepository;
+    std::shared_ptr<IUserRepository> userRepository;
 
 public:
-    explicit AuthService(const std::shared_ptr<UserRepository>& userRepository);
+    explicit AuthService(const std::shared_ptr<IUserRepository>& userRepository);
     AuthService(const AuthService& other) = delete;
     void operator=(const AuthService& other) = delete;
 

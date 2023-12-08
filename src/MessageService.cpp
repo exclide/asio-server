@@ -5,8 +5,8 @@
 #include "MessageService.h"
 
 
-MessageService::MessageService(const std::shared_ptr<MessageRepository>& messageRepository)
-        :messageRepository(messageRepository) {}
+MessageService::MessageService(const std::shared_ptr<IMessageRepository>& messageRepository)
+        : messageRepository(messageRepository) {}
 
 void MessageService::AddMessage(const DbMessage &msg) {
     messageRepository->Create(msg);
