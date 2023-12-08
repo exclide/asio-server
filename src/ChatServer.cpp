@@ -27,14 +27,17 @@ void ChatServer::StartAccept() {
     acceptor.async_accept(
             boost::asio::make_strand(acceptor.get_executor()), //separate strand for every connection
             [self = shared_from_this()] (error_code err, tcp::socket socket) {
-                if (!err) {
-                    std::make_shared<HttpSession>(std::move(socket), self->sslContext,  self->room)->Start();
-                } else if (err == boost::asio::error::operation_aborted) {
-                    std::cerr << "Operation aborted either thread exit or app request\n";
-                } else {
-                    std::cerr << err.message() << std::endl;
-                }
+                if (err) return self->Fail(err, "Failed to accept connection");
+
+                std::make_shared<HttpSession>(std::move(socket), self->sslContext,  self->room)->Start();
 
                 self->StartAccept();
             });
+}
+
+void ChatServer::Fail(error_code err, const char *what) {
+    if (err == boost::asio::error::operation_aborted)
+        return;
+
+    std::cerr << what << ": " << err.message() << std::endl;
 }

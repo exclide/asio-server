@@ -24,19 +24,13 @@ void WebsocketSession::DoRead() {
     ws.async_read(
             buffer,
             [self = shared_from_this()](error_code err, size_t bytesRead) {
-                if (!err) {
-                    auto str = beast::buffers_to_string(self->buffer.data());
-                    std::cout << "Received json: " << str;
-                    self->room->Send(self->login, str);
-                    self->buffer.consume(self->buffer.size());
-                    self->DoRead();
-                } else if (err == boost::asio::error::eof) {
-                    std::cout << "Connection closed by peer\n";
-                } else if (err == boost::asio::error::operation_aborted) {
-                    std::cout << "Operation aborted either thread exit or app request\n";
-                } else {
-                    std::cout << err.message() << std::endl;
-                }
+                if (err) return self->Fail(err, "Websocket read failed");
+
+                auto str = beast::buffers_to_string(self->buffer.data());
+                std::cout << "Received json: " << str;
+                self->room->Send(self->login, str);
+                self->buffer.consume(self->buffer.size());
+                self->DoRead();
             });
 }
 
@@ -59,21 +53,21 @@ void WebsocketSession::DoWrite() {
     ws.async_write(
             boost::asio::buffer(*sendq.front()),
             [self = shared_from_this()] (error_code err, std::size_t) {
-                if (!err) {
-                    self->sendq.pop();
-                } else if (err == boost::asio::error::eof) {
-                    std::cout << "Connection closed by peer\n";
-                    return;
-                } else if (err == boost::asio::error::operation_aborted) {
-                    std::cout << "Operation aborted either thread exit or app request\n";
-                } else {
-                    std::cout << err.message() << std::endl;
-                    return;
-                }
+                if (err) return self->Fail(err, "Websocket write failed");
+
+                self->sendq.pop();
 
                 if (!self->sendq.empty()) {
                     self->DoWrite();
                 }
             }
     );
+}
+
+void WebsocketSession::Fail(error_code err, const char *what) {
+    if (err == boost::asio::error::operation_aborted || err == websocket::error::closed
+        || boost::asio::error::eof)
+        return;
+
+    std::cerr << what << ": " << err.message() << std::endl;
 }

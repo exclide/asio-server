@@ -21,13 +21,15 @@ public:
     ~HttpSession();
 
     void Start();
+
+private:
     void DoSslHandshake();
     void DoRead();
     void HandleHttpRequest();
     void DoClose();
 
+    void Fail(error_code err, char const* what);
 
-private:
     beast::ssl_stream<beast::tcp_stream> stream;
     beast::flat_buffer buffer;
     http::request<http::string_body> req;

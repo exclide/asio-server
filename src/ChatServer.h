@@ -17,6 +17,7 @@ public:
             const std::shared_ptr<SharedState>& sharedState);
 
     void StartAccept();
+    void Fail(error_code err, char const* what);
 
 private:
     tcp::acceptor acceptor;

@@ -19,15 +19,18 @@ public:
                      std::string login);
     ~WebsocketSession();
 
-    void DoRead();
-    void DoWrite();
-    template<class Body, class Allocator>
-    void DoWebsocketHandshake(http::request<Body, http::basic_fields<Allocator>> req);
     template<class Body, class Allocator>
     void Start(http::request<Body, http::basic_fields<Allocator>> req);
     void Send(const std::shared_ptr<std::string>& msg);
 
 private:
+    void DoRead();
+    void DoWrite();
+    template<class Body, class Allocator>
+    void DoWebsocketHandshake(http::request<Body, http::basic_fields<Allocator>> req);
+
+    void Fail(error_code err, char const* what);
+
     websocket::stream<beast::ssl_stream<beast::tcp_stream>> ws;
     beast::flat_buffer buffer;
 
@@ -41,17 +44,11 @@ template<class Body, class Allocator>
 void WebsocketSession::Start(http::request<Body, http::basic_fields<Allocator>> req) {
     ws.next_layer().async_handshake(
             boost::asio::ssl::stream_base::server,
-            [self = shared_from_this(), req](error_code err){
-                if (!err) {
-                    std::cout << "Accepted SSL handshake from client\n";
-                    self->DoWebsocketHandshake(req);
-                } else if (err == boost::asio::error::eof) {
-                    std::cerr << "Connection closed by peer\n";
-                } else if (err == boost::asio::error::operation_aborted) {
-                    std::cerr << "Operation aborted either thread exit or app request\n";
-                } else {
-                    std::cerr << "SSL handshake failed: " << err.message() << std::endl;
-                }
+            [self = shared_from_this(), req](error_code err) {
+                if (err) return self->Fail(err, "SSL handshake failed");
+
+                std::cout << "Accepted SSL handshake from client\n";
+                self->DoWebsocketHandshake(req);
             });
 }
 
@@ -73,36 +70,29 @@ void WebsocketSession::DoWebsocketHandshake(http::request<Body, http::basic_fiel
     ws.async_accept(
             req,
             [self = shared_from_this()](error_code err) {
-                if (!err) {
-                    std::cout << "Accepted websocket handshake from client\n";
-                    self->room->Join(self->login, self->weak_from_this());
-                    //send the needed data
-                    auto authService = self->room->GetAuthService();
-                    auto msgService = self->room->GetMessageService();
+                if (err) return self->Fail(err, "Websocket handshake failed");
 
-                    auto users = authService->FindAllUsers();
-                    for (auto& u : users) u.password = "";
-                    auto messages = msgService->FindAllForLogin(self->login);
-                    json j;
+                std::cout << "Accepted websocket handshake from client\n";
+                self->room->Join(self->login, self->weak_from_this());
+                //send the needed data
+                auto authService = self->room->GetAuthService();
+                auto msgService = self->room->GetMessageService();
 
-                    j["users"] = users;
-                    j["messages"] = messages;
+                auto users = authService->FindAllUsers();
+                for (auto& u : users) u.password = "";
+                auto messages = msgService->FindAllForLogin(self->login);
+                json j;
 
-                    std::string jsonStr = nlohmann::to_string(j);
-                    auto ss = std::make_shared<std::string>(jsonStr);
-                    std::cout << jsonStr << std::endl;
+                j["users"] = users;
+                j["messages"] = messages;
 
-                    self->Send(ss);
+                std::string jsonStr = nlohmann::to_string(j);
+                auto ss = std::make_shared<std::string>(jsonStr);
+                std::cout << jsonStr << std::endl;
 
+                self->Send(ss);
 
-                    self->DoRead();
-                } else if (err == boost::asio::error::eof) {
-                    std::cerr << "Connection closed by peer\n";
-                } else if (err == boost::asio::error::operation_aborted) {
-                    std::cerr << "Operation aborted either thread exit or app request\n";
-                } else {
-                    std::cerr << "Websocket handshake failed: " << err.message() << std::endl;
-                }
+                self->DoRead();
             });
 }
 
