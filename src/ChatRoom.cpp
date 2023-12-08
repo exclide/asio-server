@@ -36,8 +36,7 @@ void ChatRoom::Send(const std::string& from, const std::string& jsn) {
     messageService->AddMessage(dbMessage);
 
     std::lock_guard lock(m);
-    if (wsMap.count(msgIn.to)) {
-        auto msgTarget = wsMap[msgIn.to].lock(); //target websocket session
+    if (auto msgTarget = wsMap[msgIn.to].lock(); msgTarget != nullptr) {
         msgTarget->Send(ssJson);
     } else {
         std::cout << "Receiver client offline, but message saved to db\n";

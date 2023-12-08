@@ -17,6 +17,11 @@ set(sources main.cpp ChatServer.cpp WebsocketSession.cpp ChatRoom.cpp
         AuthService.cpp
         Sha256.cpp
         ChatException.h
+        DbContext.h
+        DbConfigParser.h
+        ParseException.h
+        DbConfig.h
+        DbContext.cpp
 )
 set(libs OpenSSL::SSL nlohmann_json::nlohmann_json libpqxx::pqxx)
 

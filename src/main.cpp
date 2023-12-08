@@ -1,13 +1,18 @@
 #include "ChatServer.h"
+#include "DbConfigParser.h"
+#include "DbContext.h"
 
 int main(int argc, char* argv[]) {
-    if (argc > 2) {
-        std::cerr << "Correct usage: serv <port>\n";
+    if (argc > 3) {
+        std::cerr << "Correct usage: serv <port> <dbconfig>\n";
         return EXIT_FAILURE;
     }
 
     const int numThreads = 3;
     int port = argc == 2 ? std::stoi(argv[1]) : 1234;
+    std::string dbConfigFile = argc == 3 ? argv[2] : "DbConfig";
+    auto dbConfig = ParseDbConfig(dbConfigFile);
+    DbContext::Init(dbConfig.GetDbConnectionString(), dbConfig.connections);
 
     io_context ioc{numThreads}; //hint number of threads running ioc
     tcp::endpoint endpoint(tcp::v4(), port);
