@@ -9,6 +9,7 @@
 #include "../src/AuthService.h"
 #include "StubMessageRepository.h"
 #include "StubUserRepository.h"
+#include "../src/HttpHandler.h"
 
 TEST(Sha256Test, StringLengthTest) {
     static int sha256StringLength = 64;
@@ -57,6 +58,52 @@ TEST(MessageServiceTest, MessageFindTest) {
         EXPECT_EQ(msg1.size(), 1);
         EXPECT_EQ(msg2.size(), 1);
     }
+}
+
+TEST(AuthServiceTest, EmptyThrowsTest) {
+    auto authService = AuthService(std::make_shared<StubUserRepository>());
+    User user;
+    ASSERT_THROW(authService.Register(user), ChatException);
+    ASSERT_THROW(authService.Login(user), ChatException);
+}
+
+TEST(AuthServiceTest, RegisterLoginTest) {
+    auto authService = AuthService(std::make_shared<StubUserRepository>());
+
+    User user{"asd1", "asd1"};
+    authService.Register(user);
+
+    user.password = "asd1";
+
+    auto loggedUser = authService.Login(user);
+
+    EXPECT_FALSE(loggedUser.login.empty());
+    EXPECT_FALSE(loggedUser.password.empty());
+}
+
+TEST(HttpHandlerTest, LoginTest) {
+    auto authService=
+            std::make_shared<AuthService>(std::make_shared<StubUserRepository>());
+    auto httpHandler = HttpHandler(authService);
+    User user{"asd1", "asd1"};
+    authService->Register(user);
+
+    http::request<http::string_body> req;
+    req.method(http::verb::post);
+    req.target("/api/login");
+    std::string bodyJson = R"({"login": "asd1", "password": "asd1"})";
+    req.body() = bodyJson;
+
+    auto res = httpHandler.HandleRequest(std::move(req));
+    EXPECT_TRUE(res.second);
+
+    http::request<http::string_body> req2;
+    req.method(http::verb::post);
+    req.target("/api/login");
+    std::string bodyJson2 = R"({"login": "asd1", "password": "WRONGPASSWORD"})";
+    req.body() = bodyJson2;
+    auto res2 = httpHandler.HandleRequest(std::move(req));
+    EXPECT_FALSE(res2.second);
 }
 
 int main() {

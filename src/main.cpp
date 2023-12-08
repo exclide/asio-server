@@ -2,6 +2,8 @@
 #include "DbConfigParser.h"
 #include "DbConnPool.h"
 #include "AuthService.h"
+#include "UserRepository.h"
+#include "MessageRepository.h"
 
 int main(int argc, char* argv[]) {
     if (argc > 3) {
