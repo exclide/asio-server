@@ -95,7 +95,7 @@ void WebsocketSession::DoPing() {
         if (err) return Fail(err, "DoPing");
         pongReceived = false;
 
-        pingTimer.expires_after(boost::asio::chrono::seconds(pingExpirationTime));
+        pingTimer.expires_after(boost::asio::chrono::seconds(pingRespondTimeSecs));
         pingTimer.async_wait([this](auto err) {
             if (!err) DoPing();
         });

@@ -43,8 +43,7 @@ private:
     std::string login;
 
     bool pongReceived = true;
-    size_t pingExpirationTime = 15;
-
+    size_t pingRespondTimeSecs = 15;
 };
 
 template<class Body, class Allocator>
