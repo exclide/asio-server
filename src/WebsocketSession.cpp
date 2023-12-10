@@ -77,17 +77,13 @@ void WebsocketSession::Fail(error_code err, const char *what) {
 }
 
 void WebsocketSession::DoClose() {
-    if (ws.is_open()) {
-        ws.async_close("", [self = shared_from_this()](auto err) {
-            if (err) return self->Fail(err, "DoClose");
-        });
-    }
+    ws.next_layer().next_layer().close();
 }
 
 
 void WebsocketSession::DoPing() {
     if (!pongReceived) {
-        std::cerr << "Client didn't answer ping, closing websocket\n";
+        std::cerr << "Client didn't answer ping, closing connection\n";
         return DoClose();
     }
 
