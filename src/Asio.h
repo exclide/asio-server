@@ -19,6 +19,7 @@
 using boost::asio::io_context;
 using boost::asio::ip::tcp;
 using boost::system::error_code;
+using boost::asio::strand;
 
 using json = nlohmann::json;
 

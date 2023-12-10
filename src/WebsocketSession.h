@@ -28,16 +28,23 @@ private:
     void DoWrite();
     template<class Body, class Allocator>
     void DoWebsocketHandshake(http::request<Body, http::basic_fields<Allocator>> req);
+    void DoClose();
+    void DoPing();
 
     void Fail(error_code err, char const* what);
+    std::shared_ptr<std::string> FormFirstMessage();
 
+    boost::asio::steady_timer pingTimer;
     websocket::stream<beast::ssl_stream<beast::tcp_stream>> ws;
     beast::flat_buffer buffer;
 
     std::shared_ptr<SharedState> room;
     std::queue<std::shared_ptr<std::string>> sendq;
-
     std::string login;
+
+    bool pongReceived = true;
+    size_t pingExpirationTime = 15;
+
 };
 
 template<class Body, class Allocator>
@@ -69,30 +76,27 @@ void WebsocketSession::DoWebsocketHandshake(http::request<Body, http::basic_fiel
     // Accept the websocket handshake
     ws.async_accept(
             req,
-            [self = shared_from_this()](error_code err) {
-                if (err) return self->Fail(err, "Websocket handshake failed");
+            [this, self = shared_from_this()](error_code err) {
+                if (err) return Fail(err, "Websocket handshake failed");
 
                 std::cout << "Accepted websocket handshake from client\n";
-                self->room->Join(self->login, self->weak_from_this());
-                //send the needed data
-                auto authService = self->room->GetAuthService();
-                auto msgService = self->room->GetMessageService();
 
-                auto users = authService->FindAllUsers();
-                for (auto& u : users) u.password = "";
-                auto messages = msgService->FindAllForLogin(self->login);
-                json j;
+                ws.control_callback(
+                        [this](auto kind, auto payload) {
+                            if (kind == websocket::frame_type::pong) {
+                                std::cout << "Received pong frame from peer\n";
+                                pongReceived = true;
+                            }
+                        });
 
-                j["users"] = users;
-                j["messages"] = messages;
+                DoPing();
 
-                std::string jsonStr = nlohmann::to_string(j);
-                auto ss = std::make_shared<std::string>(jsonStr);
-                std::cout << jsonStr << std::endl;
+                room->Join(login, weak_from_this());
 
-                self->Send(ss);
+                auto ss = FormFirstMessage();
+                Send(ss);
 
-                self->DoRead();
+                DoRead();
             });
 }
 

@@ -11,7 +11,11 @@
 WebsocketSession::WebsocketSession(beast::ssl_stream<beast::tcp_stream>&& stream,
                                    const std::shared_ptr <SharedState> &room,
                                    std::string login)
-    : ws(std::move(stream)), room(room), login(std::move(login)) {
+    :
+    pingTimer(stream.get_executor()),
+    ws(std::move(stream)),
+    room(room),
+    login(std::move(login)) {
 }
 
 WebsocketSession::~WebsocketSession() {
@@ -66,8 +70,55 @@ void WebsocketSession::DoWrite() {
 
 void WebsocketSession::Fail(error_code err, const char *what) {
     if (err == boost::asio::error::operation_aborted || err == websocket::error::closed
-        || boost::asio::error::eof)
+        || err == boost::asio::error::eof)
         return;
 
     std::cerr << what << ": " << err.message() << std::endl;
 }
+
+void WebsocketSession::DoClose() {
+    if (ws.is_open()) {
+        ws.async_close("", [self = shared_from_this()](auto err) {
+            if (err) return self->Fail(err, "DoClose");
+        });
+    }
+}
+
+
+void WebsocketSession::DoPing() {
+    if (!pongReceived) {
+        std::cerr << "Client didn't answer ping, closing websocket\n";
+        return DoClose();
+    }
+
+    ws.async_ping("", [this](auto err) {
+        if (err) return Fail(err, "DoPing");
+        pongReceived = false;
+
+        pingTimer.expires_after(boost::asio::chrono::seconds(pingExpirationTime));
+        pingTimer.async_wait([this](auto err) {
+            if (!err) DoPing();
+        });
+    });
+}
+
+std::shared_ptr<std::string> WebsocketSession::FormFirstMessage() {
+    //send the needed data
+    auto authService = room->GetAuthService();
+    auto msgService = room->GetMessageService();
+
+    auto users = authService->FindAllUsers();
+    for (auto& u : users) u.password = "";
+    auto messages = msgService->FindAllForLogin(login);
+    json j;
+
+    j["users"] = users;
+    j["messages"] = messages;
+
+    std::string jsonStr = nlohmann::to_string(j);
+    auto ss = std::make_shared<std::string>(jsonStr);
+    std::cout << jsonStr << std::endl;
+
+    return ss;
+}
+

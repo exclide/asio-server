@@ -11,10 +11,20 @@ public:
     explicit ServerInit(int port = 1234, int iocThreads = 3, const std::string& dbConfigFile = "DbConfig") :
             ioc(iocThreads),
             endpoint(tcp::v4(), port),
-            numThreads(iocThreads) {
+            numThreads(iocThreads),
+            signals(ioc, SIGINT, SIGTERM) {
         dbConfig = ParseDbConfig(dbConfigFile);
         dbConnPool =
                 std::make_shared<DbConnPool>(dbConfig.GetDbConnectionString(), dbConfig.connections);
+
+        signals.async_wait([this](error_code err, auto signal) {
+            if (!err) {
+                std::cout << "Received SIGTERM, shutting down\n";
+                ioc.stop();
+            } else {
+                std::cout << err.message() << std::endl;
+            }
+        });
     }
 
     void Run() {
@@ -37,23 +47,14 @@ public:
         ioc.run();
     }
 
-
+private:
     io_context ioc;
     tcp::endpoint endpoint;
     std::shared_ptr<DbConnPool> dbConnPool;
     DbConfig dbConfig;
     int numThreads;
+    boost::asio::signal_set signals;
 };
-
-std::shared_ptr<ServerInit> server;
-
-void SigtermHandler(int signal) {
-    std::cout << "Received SIGTERM\n"
-                 "Shutting down...\n";
-
-    //stop the ioc loop to let the RAII destructors free resources, db connections, etc
-    server->ioc.stop();
-}
 
 int main(int argc, char* argv[]) {
     if (argc > 4) {
@@ -61,14 +62,11 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    std::signal(SIGTERM, SigtermHandler);
-
     int port = argc > 1 ? std::stoi(argv[1]) : 1234;
     int threads = argc > 2 ? std::stoi(argv[2]) : 3;
     std::string dbConfig = argc > 3 ? argv[3] : "DbConfig";
 
-    server = std::make_shared<ServerInit>(port, threads, dbConfig);
-    server->Run();
+    ServerInit(port, threads, dbConfig).Run();
 
     return EXIT_SUCCESS;
 }
