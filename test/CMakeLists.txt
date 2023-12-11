@@ -9,13 +9,13 @@ find_package(OpenSSL REQUIRED)
 
 set(sources
         main.cpp
-        ../src/Sha256.cpp
-        ../src/MessageService.cpp
-        ../src/AuthService.cpp
-        ../src/HttpHandler.cpp
-        StubUserRepository.h
-        StubUserRepository.cpp
-        StubMessageRepository.cpp)
+        ../src/encryption/Sha256.cpp
+        ../src/message/MessageService.cpp
+        ../src/user/AuthService.cpp
+        ../src/network/HttpHandler.cpp
+        stubs/StubUserRepository.h
+        stubs/StubUserRepository.cpp
+        stubs/StubMessageRepository.cpp)
 set(libs OpenSSL::SSL GTest::gtest GTest::gtest_main)
 
 

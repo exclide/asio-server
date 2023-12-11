@@ -7,7 +7,7 @@
 
 #include <string>
 #include <fstream>
-#include "ParseException.h"
+#include "../exceptions/ParseException.h"
 #include "DbConfig.h"
 
 

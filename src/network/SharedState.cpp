@@ -5,8 +5,8 @@
 #include "SharedState.h"
 #include "WebsocketSession.h"
 #include "Asio.h"
-#include "ClientMessage.h"
-#include "DbMessage.h"
+#include "../message/ClientMessage.h"
+#include "../message/DbMessage.h"
 
 SharedState::SharedState(const std::shared_ptr<MessageService>& messageService,
                          const std::shared_ptr<AuthService>& authService)

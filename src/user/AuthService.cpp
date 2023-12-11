@@ -3,7 +3,7 @@
 //
 
 #include "AuthService.h"
-#include "Sha256.h"
+#include "../encryption/Sha256.h"
 
 AuthService::AuthService(const std::shared_ptr<IUserRepository>& userRepository) : userRepository(userRepository) {}
 

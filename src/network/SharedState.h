@@ -8,8 +8,8 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
-#include "MessageService.h"
-#include "AuthService.h"
+#include "../message/MessageService.h"
+#include "../user/AuthService.h"
 
 class WebsocketSession;
 

@@ -8,9 +8,9 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
-#include "Sha256.h"
+#include "../encryption/Sha256.h"
 #include "User.h"
-#include "DbConnPool.h"
+#include "../database/DbConnPool.h"
 #include "IUserRepository.h"
 #include <pqxx/pqxx>
 

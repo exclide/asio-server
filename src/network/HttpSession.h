@@ -6,7 +6,7 @@
 #define ASIO_SERVER_HTTPSESSION_H
 
 #include "Asio.h"
-#include "AuthService.h"
+#include "../user/AuthService.h"
 #include "HttpHandler.h"
 #include "SharedState.h"
 

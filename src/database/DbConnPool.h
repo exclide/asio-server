@@ -10,7 +10,7 @@
 #include <memory>
 #include <mutex>
 #include <pqxx/pqxx>
-#include "ChatException.h"
+#include "../exceptions/ChatException.h"
 
 class DbConnPool {
 public:

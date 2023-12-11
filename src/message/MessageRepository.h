@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <pqxx/pqxx>
 #include "DbMessage.h"
-#include "DbConnPool.h"
+#include "../database/DbConnPool.h"
 #include "IMessageRepository.h"
 
 class MessageRepository : public IMessageRepository {

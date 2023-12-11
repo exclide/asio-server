@@ -3,13 +3,13 @@
 //
 
 #include "gtest/gtest.h"
-#include "../src/Sha256.h"
-#include "../src/DbConfigParser.h"
-#include "../src/MessageService.h"
-#include "../src/AuthService.h"
-#include "StubMessageRepository.h"
-#include "StubUserRepository.h"
-#include "../src/HttpHandler.h"
+#include "../src/encryption/Sha256.h"
+#include "../src/database/DbConfigParser.h"
+#include "../src/message/MessageService.h"
+#include "../src/user/AuthService.h"
+#include "stubs/StubMessageRepository.h"
+#include "stubs/StubUserRepository.h"
+#include "../src/network/HttpHandler.h"
 
 TEST(Sha256Test, StringLengthTest) {
     static int sha256StringLength = 64;

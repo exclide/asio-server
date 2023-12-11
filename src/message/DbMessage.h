@@ -6,7 +6,7 @@
 #define ASIO_SERVER_DBMESSAGE_H
 
 #include <ctime>
-#include "Asio.h"
+#include "../network/Asio.h"
 
 struct DbMessage {
     std::string sender;

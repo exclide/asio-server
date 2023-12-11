@@ -5,7 +5,7 @@
 #ifndef SERVER_STUBMESSAGEREPOSITORY_H
 #define SERVER_STUBMESSAGEREPOSITORY_H
 
-#include "../src/IMessageRepository.h"
+#include "../../src/message/IMessageRepository.h"
 
 class StubMessageRepository : public IMessageRepository {
 public:

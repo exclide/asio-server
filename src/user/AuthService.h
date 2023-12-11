@@ -7,7 +7,7 @@
 
 #include <memory>
 #include "IUserRepository.h"
-#include "ChatException.h"
+#include "../exceptions/ChatException.h"
 
 class AuthService {
 private:

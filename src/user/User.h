@@ -6,7 +6,7 @@
 #define ASIO_SERVER_USER_H
 
 #include <string>
-#include "Asio.h"
+#include "../network/Asio.h"
 
 struct User {
     std::string login;

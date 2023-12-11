@@ -5,7 +5,7 @@
 #ifndef SERVER_STUBUSERREPOSITORY_H
 #define SERVER_STUBUSERREPOSITORY_H
 
-#include "../src/IUserRepository.h"
+#include "../../src/user/IUserRepository.h"
 
 class StubUserRepository : public IUserRepository {
 public:

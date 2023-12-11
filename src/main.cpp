@@ -1,9 +1,9 @@
-#include "ChatServer.h"
-#include "DbConfigParser.h"
-#include "DbConnPool.h"
-#include "AuthService.h"
-#include "UserRepository.h"
-#include "MessageRepository.h"
+#include "network/ChatServer.h"
+#include "database/DbConfigParser.h"
+#include "database/DbConnPool.h"
+#include "user/AuthService.h"
+#include "user/UserRepository.h"
+#include "message/MessageRepository.h"
 
 
 class ServerInit {
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
     int port = argc > 1 ? std::stoi(argv[1]) : 1234;
     int threads = argc > 2 ? std::stoi(argv[2]) : 3;
-    std::string dbConfig = argc > 3 ? argv[3] : "DbConfig";
+    std::string dbConfig = argc > 3 ? argv[3] : "cfg/DbConfig";
 
     ServerInit(port, threads, dbConfig).Run();
 

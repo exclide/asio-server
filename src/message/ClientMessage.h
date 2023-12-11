@@ -5,7 +5,7 @@
 #ifndef ASIO_SERVER_CLIENTMESSAGE_H
 #define ASIO_SERVER_CLIENTMESSAGE_H
 
-#include "Asio.h"
+#include "../network/Asio.h"
 
 struct ClientMessage {
     std::string to;

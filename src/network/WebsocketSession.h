@@ -8,8 +8,8 @@
 #include <queue>
 #include "Asio.h"
 #include "SharedState.h"
-#include "AuthService.h"
-#include "MessageService.h"
+#include "../user/AuthService.h"
+#include "../message/MessageService.h"
 
 
 class WebsocketSession : public std::enable_shared_from_this<WebsocketSession> {

@@ -6,7 +6,7 @@
 #define SERVER_HTTPHANDLER_H
 
 #include "Asio.h"
-#include "AuthService.h"
+#include "../user/AuthService.h"
 #include "jwt-cpp/jwt.h"
 
 
